@@ -1,0 +1,70 @@
+# ---------------------------------
+# IPTV config for some basic stuff
+# ---------------------------------
+
+[config]
+app_name = Strong8k IPTV
+# the name in the title bar
+
+app_icon = mdi.television-classic
+# the icon in the title bar using mdi icons, see https://pictogrammers.com/library/mdi/ 
+
+app_icon_color = #292623
+# the icon color in the title bar, can be text or RGB
+
+app_height: 560
+app_width: 800
+# the size of the application window
+
+playlist_icon = mdi.television-classic
+# icon used in the playlist
+
+app_theme = theme.xml
+# default is theme.xml, but you can add your own or use those from qt_material (see below for the full list)
+
+row_height: 24
+# for the spacing between playlist items
+
+app_font = Century Gothic
+app_font_size = 13px
+# can be any font you have installed
+
+m3u_url = http://192.168.1.2:9191/output/m3u
+# url of your online provider
+# TIP: where an online provider has thousands of channels, you can use Dispatcharr to rationalise these.
+
+mpv_path = mpv.exe
+# the path to mpv.exe. the default is 'mpv.exe' where it's on PATH
+
+list_name = playlist.json
+# the filename used to save your playlist
+
+# ---------------------------------
+# alternate themes for app_theme
+# ---------------------------------
+# dark_amber.xml
+# dark_blue.xml
+# dark_cyan.xml
+# dark_lightgreen.xml
+# dark_pink.xml
+# dark_purple.xml
+# dark_red.xml
+# dark_teal.xml
+# dark_yellow.xml
+# light_amber.xml
+# light_blue.xml
+# light_blue_500.xml
+# light_cyan.xml
+# light_cyan_500.xml
+# light_lightgreen.xml
+# light_lightgreen_500.xml
+# light_orange.xml
+# light_pink.xml
+# light_pink_500.xml
+# light_purple.xml
+# light_purple_500.xml
+# light_red.xml
+# light_red_500.xml
+# light_teal.xml
+# light_teal_500.xml
+# light_yellow.xml
