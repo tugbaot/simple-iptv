@@ -164,6 +164,9 @@ class M3UPlayer(QMainWindow):
         m3u = response.text
         with open("loaded.m3u", "w", encoding="utf-8") as m:
             m.write(m3u)
+
+        self.playlist.clear()
+
         try:
             with open("loaded.m3u", "r", encoding="utf-8", errors="ignore") as f:
                 name = None
