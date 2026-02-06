@@ -16,6 +16,7 @@ Requires:
 - Open M3U: to open a m3u file
 - Load URL: to load an online m3u from an IPTV provider
 - Rename: to rename a highlighted channel
+- Clear list: clear current channels
 - Play: or double click to play
 - Reorder the channels by dragging the TV icons
 
