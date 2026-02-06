@@ -18,7 +18,7 @@ Requires:
 - Rename: to rename a highlighted channel
 - Play: or double click to play
 - Reorder the channels by dragging the TV icons
--
+
 You can change many things, see:
 - config.txt for various changes to the layout
 - config.txt to add your IPTV provider url
@@ -70,3 +70,10 @@ mpv_path = mpv.exe
 list_name = playlist.json
 # the filename used to save your playlist
 ```
+
+### To do
+- Search for channels
+- Favourites
+- Filter
+  
+(all currently handled by [Dispatcharr](https://github.com/Dispatcharr/Dispatcharr))
