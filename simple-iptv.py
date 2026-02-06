@@ -2,10 +2,6 @@
 # Created: 02/02/2026
 # Simple IPTV manager thing
 # ##########################
-# TO DO
-# add background image?
-# add a logo somewhere?
-# ##########################
 import sys
 import os
 import json
@@ -47,7 +43,7 @@ APP_FONT_SIZE = config.get('config', 'app_font_size')
 ROW_HEIGHT = int(config.get('config', 'row_height'))
 APP_HEIGHT = int(config.get('config', 'app_height'))
 APP_WIDTH = int(config.get('config', 'app_height'))
-INFO = "A simple, no nonsense IPTV manager using mpv.exe to play iptv channels. I created this as I wanted something lightweight and quick to just launch some TV.\n\nOpen M3U: to open a m3u file\nLoad URL: to load an online m3u from an IPTV provider\nRename: to rename a highlighted channel\nPlay: or double click to play\n\nReorder the channels by dragging the TV icons\n\nYou can change many things, see: \n• config.txt for various changes to the layout\n• config.txt to add your IPTV provider url\n• theme.xml for the colorscheme\n\n🌐 https://github.com/tugbaot/simple-iptv"
+INFO = "A simple, no nonsense IPTV manager using mpv.exe to play iptv channels. I created this as I wanted something lightweight and quick to just launch some TV.\n\nBasic features:\n• Open M3U: to open a m3u file\n• Load URL: to load an online m3u from an IPTV provider\n• Rename: to rename a highlighted channel\n• Play: or double click to play\n• Clear list: clear all channels\n• Reorder the channels by dragging the TV icons\n\nYou can tweak many things: \n• config.txt for various changes to the layout\n• config.txt to add your IPTV provider url\n• theme.xml for the colorscheme\n\n🌐 https://github.com/tugbaot/simple-iptv"
 
 # ------- Right then ---------------
 class M3UPlayer(QMainWindow):
@@ -87,7 +83,7 @@ class M3UPlayer(QMainWindow):
         btn_open = self.make_button(" Open M3U", "mdi.folder-open", self.load_m3u)
         btn_url = self.make_button(" Load URL", "mdi.link", self.load_url)
         btn_rename = self.make_button(" Rename", "mdi.pencil", self.rename_item)
-        btn_clear = self.make_button(" Clear list", "mdi.pencil", self.clearlist)
+        btn_clear = self.make_button(" Clear list", "mdi.delete-outline", self.clearlist)
         btn_play = self.make_button(" Play", "mdi.play-circle", self.play_selected)
         btn_info = self.make_button(" Info", "mdi.information", self.info)
         btn_quit = self.make_button(" Quit", "mdi.exit-to-app", self.quit)
