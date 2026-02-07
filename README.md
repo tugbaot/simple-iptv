@@ -28,6 +28,7 @@ You can change many things, see:
 
 ### Tips
 - If your IPTV provider has a lot (thousands) of channels, **simple-iptv** doesn't (yet) allow you to create favourites (but you can search to filter). I use the brilliant [Dispatcharr](https://github.com/Dispatcharr/Dispatcharr) to rationalise the channels I use most.
+- To try out some IPTV, you can add this url to config.txt [https://iptv-org.github.io/iptv/index.m3u](https://iptv-org.github.io/iptv/index.m3u) which has a curated list of free channels form across the world.
 
 ### Config
 ```
