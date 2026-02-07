@@ -15,7 +15,7 @@ import requests
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QFileDialog,
     QVBoxLayout, QHBoxLayout, QStyle, QInputDialog, QMessageBox,
-    QLineEdit, QLabel, QListView, QStyledItemDelegate
+    QLineEdit, QLabel, QListView, QStyledItemDelegate, QAbstractItemView
 )
 from PySide6.QtCore import Qt, QSize, QSortFilterProxyModel, QStringListModel, QRect
 from PySide6.QtGui import QIcon, QPainter, QTextOption
@@ -69,7 +69,7 @@ class PlaylistDelegate(QStyledItemDelegate):
             painter.fillRect(rect, option.palette.highlight())
         #elif option.state & QStyle.State_MouseOver:
         #    painter.fillRect(rect, option.palette.base().color().lighter(105))
-        # -- this seems to cause a bug where a black highlight bar appears on prev selection 
+        # -- this seems to cause a bug where a black highlight bar might appear on prev selection 
 
         # ---- Icon
         icon_size = 20
@@ -125,7 +125,7 @@ class M3UPlayer(QMainWindow):
         self.search = QLineEdit()
         self.search.setPlaceholderText("Search channels…")
         self.search.textChanged.connect(self.filter_changed)
-        self.search.hide()
+        #self.search.hide() # uncomment if you want search to be hidden unless clicked
         self.search.setFocus(Qt.ShortcutFocusReason)
         self.search.selectAll()
         self.search.setClearButtonEnabled(True)
@@ -138,14 +138,14 @@ class M3UPlayer(QMainWindow):
         self.model = QStringListModel()
 
         # Proxy model
-        self.proxy = QSortFilterProxyModel()
-        self.proxy.setSourceModel(self.model)
-        self.proxy.setFilterCaseSensitivity(Qt.CaseInsensitive)
-        self.proxy.setFilterKeyColumn(0)
+        self.proxy_model = QSortFilterProxyModel()
+        self.proxy_model.setSourceModel(self.model)
+        self.proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.proxy_model.setFilterKeyColumn(0)
 
         # View
         self.list_view = QListView()
-        self.list_view.setModel(self.proxy)
+        self.list_view.setModel(self.proxy_model)
         self.list_view.doubleClicked.connect(self.play_selected)
         self.list_view.setDragDropMode(QListView.InternalMove)
         self.list_view.setDefaultDropAction(Qt.MoveAction)
@@ -155,6 +155,7 @@ class M3UPlayer(QMainWindow):
         self.list_view.setItemDelegate(
             PlaylistDelegate(ROW_HEIGHT, playlist_icon, self.list_view)
         )
+        self.list_view.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
         main_left.addWidget(self.list_view, 1)
         main.addLayout(main_left, 1)
@@ -163,7 +164,7 @@ class M3UPlayer(QMainWindow):
         controls = QVBoxLayout()
         controls.setSpacing(8)
 
-        btn_search = self.make_button(" Search", "mdi.magnify", self.toggle_search)
+        btn_search = self.make_button(" Search", "mdi.magnify", self.toggle_search) 
         btn_open = self.make_button(" Open M3U", "mdi.folder-open", self.load_m3u)
         btn_url = self.make_button(" Load URL", "mdi.link", self.load_url)
         btn_rename = self.make_button(" Rename", "mdi.pencil", self.rename_item)
@@ -172,7 +173,7 @@ class M3UPlayer(QMainWindow):
         btn_info = self.make_button(" Info", "mdi.information", self.info)
         btn_quit = self.make_button(" Quit", "mdi.exit-to-app", self.quit)
 
-        controls.insertWidget(0, btn_search)
+        controls.insertWidget(0, btn_search) # comment out if you don't want to toggle the search bar
         controls.addWidget(btn_open)
         controls.addWidget(btn_url)
         controls.addWidget(btn_rename)
@@ -313,8 +314,13 @@ class M3UPlayer(QMainWindow):
             self.refresh_list()
 
     # ---------- Playback ----------
-    def play_selected(self, index):
-        source_index = self.proxy.mapToSource(index)
+    def play_selected(self):
+        index = self.list_view.currentIndex()
+        if not index.isValid():
+            return
+
+        # Map proxy → source
+        source_index = self.proxy_model.mapToSource(index)
         row = source_index.row()
 
         media_path = self.playlist[row][1]
