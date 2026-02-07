@@ -2,6 +2,9 @@
 # Created: 02/02/2026
 # Simple IPTV manager thing
 # ##########################
+# TO DO
+# Double click is iffy
+# ##########################
 import sys
 import os
 import json
@@ -10,12 +13,12 @@ import configparser
 import requests
 
 from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QListWidget, QListWidgetItem,
-    QPushButton, QFileDialog, QVBoxLayout, QHBoxLayout,
-    QInputDialog, QMessageBox, QLineEdit, QLabel
+    QApplication, QMainWindow, QWidget, QPushButton, QFileDialog,
+    QVBoxLayout, QHBoxLayout, QStyle, QInputDialog, QMessageBox,
+    QLineEdit, QLabel, QListView, QStyledItemDelegate
 )
-from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QIcon, QFont
+from PySide6.QtCore import Qt, QSize, QSortFilterProxyModel, QStringListModel, QRect
+from PySide6.QtGui import QIcon, QPainter, QTextOption
 
 from qt_material import apply_stylesheet
 import qtawesome as qta
@@ -43,9 +46,59 @@ APP_FONT_SIZE = config.get('config', 'app_font_size')
 ROW_HEIGHT = int(config.get('config', 'row_height'))
 APP_HEIGHT = int(config.get('config', 'app_height'))
 APP_WIDTH = int(config.get('config', 'app_height'))
-INFO = "A simple, no nonsense IPTV manager using mpv.exe to play iptv channels. I created this as I wanted something lightweight and quick to just launch some TV.\n\nBasic features:\n• Open M3U: to open a m3u file\n• Load URL: to load an online m3u from an IPTV provider\n• Rename: to rename a highlighted channel\n• Play: or double click to play\n• Clear list: clear all channels\n• Reorder the channels by dragging the TV icons\n\nYou can tweak many things: \n• config.txt for various changes to the layout\n• config.txt to add your IPTV provider url\n• theme.xml for the colorscheme\n\n🌐 https://github.com/tugbaot/simple-iptv"
+INFO = "A simple, no nonsense IPTV manager using mpv.exe to play iptv channels. I created this as I wanted something lightweight and quick to just launch some TV.\n\nBasic features:\n• Search: to search channel list\n• Open M3U: to open a m3u file\n• Load URL: to load an online m3u from an IPTV provider\n• Rename: to rename a highlighted channel\n• Clear list: clear all channels\n• Play: or double click to play\n• Reorder the channels by dragging the TV icons\n\nYou can tweak many things: \n• config.txt for various changes to the layout\n• config.txt to add your IPTV provider url\n• theme.xml for the colorscheme\n\n🌐 https://github.com/tugbaot/simple-iptv"
 
 # ------- Right then ---------------
+class PlaylistDelegate(QStyledItemDelegate):
+    def __init__(self, height, icon, parent=None):
+        super().__init__(parent)
+        self.height = height
+        self.icon = icon
+
+    def sizeHint(self, option, index):
+        return QSize(option.rect.width(), self.height)
+
+    def paint(self, painter, option, index):
+        painter.save()
+
+        rect = option.rect
+        text = index.data(Qt.DisplayRole)
+
+        # ---- Background (hover / selection handled by style)
+        if option.state & QStyle.State_Selected:
+            painter.fillRect(rect, option.palette.highlight())
+        #elif option.state & QStyle.State_MouseOver:
+        #    painter.fillRect(rect, option.palette.base().color().lighter(105))
+        # -- this seems to cause a bug where a black highlight bar appears on prev selection 
+
+        # ---- Icon
+        icon_size = 20
+        icon_margin = 8
+
+        icon_rect = QRect(
+            rect.left() + icon_margin,
+            rect.top() + (rect.height() - icon_size) // 2,
+            icon_size,
+            icon_size
+        )
+        self.icon.paint(painter, icon_rect)
+
+        # ---- Text (multi-line, word wrap)
+        text_rect = QRect(
+            icon_rect.right() + 8,
+            rect.top() + 4,
+            rect.width() - icon_rect.width() - 24,
+            rect.height() - 8
+        )
+
+        text_option = QTextOption()
+        text_option.setWrapMode(QTextOption.WordWrap)
+
+        painter.setPen(option.palette.text().color())
+        painter.drawText(text_rect, text, text_option)
+
+        painter.restore()
+
 class M3UPlayer(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -68,18 +121,49 @@ class M3UPlayer(QMainWindow):
         main.setContentsMargins(12, 12, 12, 12)
 
         # Playlist
-        self.list_widget = QListWidget()
-        self.list_widget.itemDoubleClicked.connect(self.play_selected)
-        self.list_widget.setDragDropMode(QListWidget.InternalMove)
-        self.list_widget.setDefaultDropAction(Qt.MoveAction)
-        self.list_widget.setUniformItemSizes(False)
+        # Search box
+        self.search = QLineEdit()
+        self.search.setPlaceholderText("Search channels…")
+        self.search.textChanged.connect(self.filter_changed)
+        self.search.hide()
+        self.search.setFocus(Qt.ShortcutFocusReason)
+        self.search.selectAll()
+        self.search.setClearButtonEnabled(True)
 
-        main.addWidget(self.list_widget, 1)
+
+        main_left = QVBoxLayout()
+        main_left.addWidget(self.search)
+
+        # Base model
+        self.model = QStringListModel()
+
+        # Proxy model
+        self.proxy = QSortFilterProxyModel()
+        self.proxy.setSourceModel(self.model)
+        self.proxy.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.proxy.setFilterKeyColumn(0)
+
+        # View
+        self.list_view = QListView()
+        self.list_view.setModel(self.proxy)
+        self.list_view.doubleClicked.connect(self.play_selected)
+        self.list_view.setDragDropMode(QListView.InternalMove)
+        self.list_view.setDefaultDropAction(Qt.MoveAction)
+
+        playlist_icon = qta.icon(PLAYLIST_ICON)
+
+        self.list_view.setItemDelegate(
+            PlaylistDelegate(ROW_HEIGHT, playlist_icon, self.list_view)
+        )
+
+        main_left.addWidget(self.list_view, 1)
+        main.addLayout(main_left, 1)
 
         # Controls
         controls = QVBoxLayout()
         controls.setSpacing(8)
 
+        btn_search = self.make_button(" Search", "mdi.magnify", self.toggle_search)
         btn_open = self.make_button(" Open M3U", "mdi.folder-open", self.load_m3u)
         btn_url = self.make_button(" Load URL", "mdi.link", self.load_url)
         btn_rename = self.make_button(" Rename", "mdi.pencil", self.rename_item)
@@ -88,6 +172,7 @@ class M3UPlayer(QMainWindow):
         btn_info = self.make_button(" Info", "mdi.information", self.info)
         btn_quit = self.make_button(" Quit", "mdi.exit-to-app", self.quit)
 
+        controls.insertWidget(0, btn_search)
         controls.addWidget(btn_open)
         controls.addWidget(btn_url)
         controls.addWidget(btn_rename)
@@ -98,7 +183,6 @@ class M3UPlayer(QMainWindow):
         controls.addWidget(btn_quit)
 
         main.addLayout(controls)
-
 
     def make_button(self, text, icon_name, callback):
         btn = QPushButton(text)
@@ -112,21 +196,33 @@ class M3UPlayer(QMainWindow):
 
     # ---------- Playlist ----------
     def refresh_list(self):
-        self.list_widget.clear()
+        names = [name for name, _ in self.playlist]
+        self.model.setStringList(names)
 
-        for name, _ in self.playlist:
-            item = QListWidgetItem(f"  {name}")
-            item.setFlags(
-                Qt.ItemIsSelectable |
-                Qt.ItemIsEnabled |
-                Qt.ItemIsDragEnabled
-            )
+    def filter_changed(self, text):
+        self.proxy.setFilterFixedString(text)
 
-            # Drag handle icon (visual)
-            item.setIcon(qta.icon("mdi.television-classic"))
+    # ---------- Toggle Search ---------
+    def toggle_search(self):
+        if self.search.isVisible():
+            self.clear_search()
+        else:
+            self.search.show()
+            self.search.setFocus()
 
-            item.setSizeHint(QSize(1, ROW_HEIGHT))
-            self.list_widget.addItem(item)
+    def clear_search(self):
+        self.search.clear()
+        self.search.hide()
+        self.proxy.setFilterFixedString("")
+        self.update_drag_state()
+
+    def update_drag_state(self):
+        searching = bool(self.search.text().strip())
+
+        self.list_view.setDragEnabled(not searching)
+        self.list_view.setAcceptDrops(not searching)
+        self.list_view.setDropIndicatorShown(not searching)
+
     # ---------- Load M3U ---------
     def load_m3u(self):
         path, _ = QFileDialog.getOpenFileName(
@@ -200,9 +296,12 @@ class M3UPlayer(QMainWindow):
 
     # ---------- Renaming ---------
     def rename_item(self):
-        row = self.list_widget.currentRow()
-        if row < 0:
+        index = self.list_view.currentIndex()
+        if not index.isValid():
             return
+
+        source_index = self.proxy.mapToSource(index)
+        row = source_index.row()
 
         current = self.playlist[row][0]
         text, ok = QInputDialog.getText(
@@ -212,13 +311,11 @@ class M3UPlayer(QMainWindow):
         if ok and text:
             self.playlist[row][0] = text
             self.refresh_list()
-            self.list_widget.setCurrentRow(row)
 
     # ---------- Playback ----------
-    def play_selected(self):
-        row = self.list_widget.currentRow()
-        if row < 0:
-            return
+    def play_selected(self, index):
+        source_index = self.proxy.mapToSource(index)
+        row = source_index.row()
 
         media_path = self.playlist[row][1]
 
@@ -246,8 +343,8 @@ class M3UPlayer(QMainWindow):
     def closeEvent(self, event):
         # Sync order from UI (important after drag & drop)
         new_order = []
-        for i in range(self.list_widget.count()):
-            name = self.list_widget.item(i).text().strip()
+        for i in range(self.list_view.count()):
+            name = self.list_view.item(i).text().strip()
             for entry in self.playlist:
                 if entry[0] == name:
                     new_order.append(entry)
