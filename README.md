@@ -13,6 +13,7 @@ Requires:
 - mpv.exe (just add in config.txt where it's installed)
 
 ### Basic features
+- Search: search box to filter & search for channels
 - Open M3U: to open a m3u file
 - Load URL: to load an online m3u from an IPTV provider
 - Rename: to rename a highlighted channel
@@ -26,7 +27,7 @@ You can change many things, see:
 - theme.xml for the colorscheme
 
 ### Tips
-- If your IPTV provider has a lot (thousands) of channels, **simple-iptv** doesn't (yet) allow you to create favourites and filter the channels. For this I use the brilliant [Dispatcharr](https://github.com/Dispatcharr/Dispatcharr)
+- If your IPTV provider has a lot (thousands) of channels, **simple-iptv** doesn't (yet) allow you to create favourites (but you can search to filter). I use the brilliant [Dispatcharr](https://github.com/Dispatcharr/Dispatcharr) to rationalise the channels I use most.
 
 ### Config
 ```
@@ -52,7 +53,7 @@ playlist_icon = mdi.television-classic
 # icon used in the playlist
 
 app_theme = theme.xml
-# default is theme.xml, but you can add your own or use those from qt_material (see below for the full list)
+# default is theme.xml, but you can modify, add your own or use those from qt_material (see below for the full list)
 
 row_height: 24
 # for the spacing between playlist items
@@ -73,8 +74,5 @@ list_name = playlist.json
 ```
 
 ### To do
-- Search for channels
 - Favourites
-- Filter
-  
-(all currently handled by [Dispatcharr](https://github.com/Dispatcharr/Dispatcharr))
+
