@@ -1,9 +1,9 @@
-# ---------------------------------
-# IPTV config for some basic stuff
-# ---------------------------------
+# ----------------------------------------
+# simple-iptv config for some basic stuff
+# ----------------------------------------
 
 [config]
-app_name = Strong8k IPTV
+app_name = Simple IPTV
 # the name in the title bar
 
 app_icon = mdi.television-classic
@@ -12,8 +12,8 @@ app_icon = mdi.television-classic
 app_icon_color = #292623
 # the icon color in the title bar, can be text or RGB
 
-app_height: 560
-app_width: 800
+app_height: 640
+app_width: 860
 # the size of the application window
 
 playlist_icon = mdi.television-classic
@@ -29,7 +29,7 @@ app_font = Century Gothic
 app_font_size = 13px
 # can be any font you have installed
 
-m3u_url = http://192.168.1.2:9191/output/m3u
+m3u_url = https://iptv-org.github.io/iptv/index.m3u
 # url of your online provider
 # TIP: where an online provider has thousands of channels, you can use Dispatcharr to rationalise these.
 
