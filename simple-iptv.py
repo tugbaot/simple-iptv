@@ -202,7 +202,7 @@ class M3UPlayer(QMainWindow):
         self.model.setStringList(names)
 
     def filter_changed(self, text):
-        self.proxy.setFilterFixedString(text)
+        self.proxy_model.setFilterFixedString(text)
 
     # ---------- Toggle Search ---------
     def toggle_search(self):
@@ -215,7 +215,7 @@ class M3UPlayer(QMainWindow):
     def clear_search(self):
         self.search.clear()
         self.search.hide()
-        self.proxy.setFilterFixedString("")
+        self.proxy_model.setFilterFixedString("")
         self.update_drag_state()
 
     def update_drag_state(self):
