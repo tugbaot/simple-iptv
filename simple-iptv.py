@@ -181,7 +181,7 @@ class M3UPlayer(QMainWindow):
         controls.addStretch()
         controls.addWidget(btn_play)
         controls.addWidget(btn_info)
-        controls.addWidget(btn_quit)
+        #controls.addWidget(btn_quit) NOT READY
 
         main.addLayout(controls)
 
@@ -291,8 +291,9 @@ class M3UPlayer(QMainWindow):
     def info(self):
         ret = QMessageBox.about(self,"Info",INFO)
 
-    # ---------- Quit -------------
-    def quit(quit):
+    # ---------- Quit ------------- NOT READY
+    def quit(self):
+        self.closeEvent(quit)
         sys.exit()
 
     # ---------- Renaming ---------
@@ -301,7 +302,7 @@ class M3UPlayer(QMainWindow):
         if not index.isValid():
             return
 
-        source_index = self.proxy.mapToSource(index)
+        source_index = self.proxy_model.mapToSource(index)
         row = source_index.row()
 
         current = self.playlist[row][0]
@@ -346,22 +347,28 @@ class M3UPlayer(QMainWindow):
         except Exception:
             pass
 
+    # ---------- Closing ----------
     def closeEvent(self, event):
-        # Sync order from UI (important after drag & drop)
         new_order = []
-        for i in range(self.list_view.count()):
-            name = self.list_view.item(i).text().strip()
+
+        model = self.model  # source model (QStringListModel or QStandardItemModel)
+
+        for row in range(model.rowCount()):
+            index = model.index(row, 0)
+            name = model.data(index).strip()
+
             for entry in self.playlist:
                 if entry[0] == name:
                     new_order.append(entry)
                     break
+
         self.playlist = new_order
 
         try:
             with open(STATE_FILE, "w", encoding="utf-8") as f:
                 json.dump(self.playlist, f, indent=2)
-        except Exception:
-            pass
+        except Exception as e:
+            print("Failed to save state:", e)
 
         event.accept()
 

@@ -1,13 +1,13 @@
 <!--?xml version="1.0" encoding="UTF-8"?-->
 <resources>
   <!-- The main color of icons, buttons & row highlighting -->
-  <color name="primaryColor">#FFFBF0</color>
+  <color name="primaryColor">#FFF0F8</color>
   <!-- playlist text color -->
-  <color name="secondaryTextColor">#FFFBF0</color>
+  <color name="secondaryTextColor">#FFF0F8</color>
   <!-- playlist text color when highlighted -->
-  <color name="primaryTextColor">#FFFBF0</color>
+  <color name="primaryTextColor">#FFF0F8</color>
   <!-- highlight color when renaming -->
-  <color name="primaryLightColor">#FFFBF0</color>
+  <color name="primaryLightColor">#5a5b61</color>
   <!-- the background color of the main window-->
   <color name="secondaryDarkColor">#31363b</color>
   <!-- the background color of the playlist, with transparency -->
