@@ -181,10 +181,11 @@ class M3UPlayer(QMainWindow):
         controls.addStretch()
         controls.addWidget(btn_play)
         controls.addWidget(btn_info)
-        #controls.addWidget(btn_quit) NOT READY
+        controls.addWidget(btn_quit)
 
         main.addLayout(controls)
 
+    # ---------- Buttons -----------
     def make_button(self, text, icon_name, callback):
         btn = QPushButton(text)
         btn.setIcon(qta.icon(icon_name))
@@ -281,19 +282,19 @@ class M3UPlayer(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))
 
-# ---------- Load URL ---------
+    # ---------- Clear ---------
     def clearlist(self):
         self.playlist.clear()
         self.refresh_list()
-
 
     # ---------- Info box ---------
     def info(self):
         ret = QMessageBox.about(self,"Info",INFO)
 
-    # ---------- Quit ------------- NOT READY
+    # ---------- Quit -------------
     def quit(self):
-        self.closeEvent(quit)
+        with open(STATE_FILE, "w", encoding="utf-8") as f:
+                json.dump(self.playlist, f, indent=2)
         sys.exit()
 
     # ---------- Renaming ---------
