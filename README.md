@@ -29,7 +29,7 @@ You can change many things, see:
 ### Tips
 - When you load a providers IPTV list, it is saved as loaded.m3u so you can rename and have a collection of m3u files for different sources you can quickly load.
 - If your IPTV provider has a lot (thousands) of channels, **simple-iptv** doesn't (yet) allow you to create favourites (but you can search to filter). I use the brilliant [Dispatcharr](https://github.com/Dispatcharr/Dispatcharr) to rationalise the channels I use most.
-- To try out some IPTV, you can add this url to config.txt [https://iptv-org.github.io/iptv/index.m3u](https://iptv-org.github.io/iptv/index.m3u) which has a curated list of free channels form across the world. You can find more IPTV providers here [https://github.com/iptv-org/awesome-iptv](https://github.com/iptv-org/awesome-iptv?tab=readme-ov-file#providers)
+- To try out some IPTV, you can add this url to config.txt [https://iptv-org.github.io/iptv/index.m3u](https://iptv-org.github.io/iptv/index.m3u) which has a curated list of free channels from across the world. You can find more IPTV providers here [https://github.com/iptv-org/awesome-iptv](https://github.com/iptv-org/awesome-iptv?tab=readme-ov-file#providers)
 
 ### Config
 ```
@@ -64,7 +64,7 @@ app_font = Century Gothic
 app_font_size = 13px
 # can be any font you have installed
 
-m3u_url = http://192.168.1.2:9191/output/m3u
+m3u_url = https://iptv-org.github.io/iptv/index.m3u
 # url of your online provider
 # TIP: where an online provider has thousands of channels, you can use Dispatcharr to rationalise these.
 
