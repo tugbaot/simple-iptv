@@ -3,7 +3,7 @@ A simple, no nonsense IPTV manager using mpv.exe to play iptv channels. I  creat
 ![simple-iptv screenshot](https://github.com/tugbaot/simple-iptv/blob/main/Screenshot.png)
 
 ### Install
-To install, just download the zip and uninstall wherever you like. Most things are configurable, e.g. size, font, theme, app name and icon.
+To install, just clone or download the zip and uninstall wherever you like. Most things are configurable, e.g. size, font, theme, app name and icon.
 It uses mpv.exe as the player, you just need to add the path to mpv.exe in confix.txt.
 
 Run with ```py simple-iptv.py``` 
