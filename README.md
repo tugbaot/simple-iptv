@@ -1,5 +1,5 @@
 # simple-iptv
-A simple, no nonsense IPTV manager using mpv.exe to play iptv channels. I  created this as I wanted something lightweight and quick to just launch some TV.
+A simple, no nonsense (but very customisable) IPTV manager using mpv.exe to play iptv channels. I  created this as I wanted something lightweight and quick to just launch some TV.
 ![simple-iptv screenshot](https://github.com/tugbaot/simple-iptv/blob/main/screenshots/screenshot.png)
 
 ### Install
