@@ -3,10 +3,10 @@ A simple, no nonsense IPTV manager using mpv.exe to play iptv channels. I  creat
 ![simple-iptv screenshot](https://github.com/tugbaot/simple-iptv/blob/main/screenshots/screenshot.png)
 
 ### Install
-To install, just download the zip and uninstall wherever you like. Most things are configurable, e.g. size, font, theme, app name and icon.
+To install, just clone or download the zip and uninstall wherever you like. Most things are configurable, e.g. size, font, theme, app name and icon.
 It uses mpv.exe as the player, you just need to add the path to mpv.exe in confix.txt.
 
-Run with ```py simple-iptv.py``` 
+Run with ```py simple-iptv.py``` or see Tips below if you just want a normal shortcut.
 
 Requires:
 - pip install pyside6 qtawesome configparser
@@ -32,8 +32,10 @@ You can change many things, see:
 - theme.xml for the colorscheme
 
 ### Tips
+- If you don't want to run from the command line, you can create a normal desktop shortcut with the following as target: ```C:\<path to>\pythonw.exe "C:\<path to>\simple-iptv.py"```
+- When you load a providers IPTV list, it is saved as loaded.m3u so you can rename and have a collection of m3u files for different sources you can quickly load.
 - If your IPTV provider has a lot (thousands) of channels, **simple-iptv** doesn't (yet) allow you to create favourites (but you can search to filter). I use the brilliant [Dispatcharr](https://github.com/Dispatcharr/Dispatcharr) to rationalise the channels I use most.
-- To try out some IPTV, you can add this url to config.txt [https://iptv-org.github.io/iptv/index.m3u](https://iptv-org.github.io/iptv/index.m3u) which has a curated list of free channels form across the world. You can find more IPTV providers here [https://github.com/iptv-org/awesome-iptv](https://github.com/iptv-org/awesome-iptv?tab=readme-ov-file#providers)
+- To try out some IPTV, you can add this url to config.txt [https://iptv-org.github.io/iptv/index.m3u](https://iptv-org.github.io/iptv/index.m3u) which has a curated list of free channels from across the world. You can find more IPTV providers here [https://github.com/iptv-org/awesome-iptv](https://github.com/iptv-org/awesome-iptv?tab=readme-ov-file#providers)
 
 ### Config
 ```
@@ -68,7 +70,7 @@ app_font = Century Gothic
 app_font_size = 13px
 # can be any font you have installed
 
-m3u_url = http://192.168.1.2:9191/output/m3u
+m3u_url = https://iptv-org.github.io/iptv/index.m3u
 # url of your online provider
 # TIP: where an online provider has thousands of channels, you can use Dispatcharr to rationalise these.
 
