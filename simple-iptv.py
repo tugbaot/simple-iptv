@@ -45,7 +45,7 @@ APP_FONT = config.get('config', 'app_font')
 APP_FONT_SIZE = config.get('config', 'app_font_size')
 ROW_HEIGHT = int(config.get('config', 'row_height'))
 APP_HEIGHT = int(config.get('config', 'app_height'))
-APP_WIDTH = int(config.get('config', 'app_height'))
+APP_WIDTH = int(config.get('config', 'app_width'))
 INFO = "A simple, no nonsense IPTV manager using mpv.exe to play iptv channels. I created this as I wanted something lightweight and quick to just launch some TV.\n\nBasic features:\n• Search: to search channel list\n• Open M3U: to open a m3u file\n• Load URL: to load an online m3u from an IPTV provider\n• Rename: to rename a highlighted channel\n• Clear list: clear all channels\n• Play: or double click to play\n• Reorder the channels by dragging the TV icons\n\nYou can tweak many things: \n• config.txt for various changes to the layout\n• config.txt to add your IPTV provider url\n• theme.xml for the colorscheme\n\n🌐 https://github.com/tugbaot/simple-iptv"
 
 # ------- Right then ---------------
@@ -167,6 +167,7 @@ class M3UPlayer(QMainWindow):
         btn_search = self.make_button(" Search", "mdi.magnify", self.toggle_search) 
         btn_open = self.make_button(" Open M3U", "mdi.folder-open", self.load_m3u)
         btn_url = self.make_button(" Load URL", "mdi.link", self.load_url)
+        btn_save = self.make_button(" Save M3U", "mdi.link", self.save_m3u)
         btn_rename = self.make_button(" Rename", "mdi.pencil", self.rename_item)
         btn_clear = self.make_button(" Clear list", "mdi.delete-outline", self.clearlist)
         btn_play = self.make_button(" Play", "mdi.play-circle", self.play_selected)
@@ -176,6 +177,7 @@ class M3UPlayer(QMainWindow):
         controls.insertWidget(0, btn_search) # comment out if you don't want to toggle the search bar
         controls.addWidget(btn_open)
         controls.addWidget(btn_url)
+        controls.addWidget(btn_save)
         controls.addWidget(btn_rename)
         controls.addWidget(btn_clear)
         controls.addStretch()
@@ -281,6 +283,41 @@ class M3UPlayer(QMainWindow):
 
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))
+
+# ---------- Save M3U ---------
+    def save_m3u(self):
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save playlist",
+            "playlist.m3u",
+            "M3U Files (*.m3u)"
+        )
+
+        if not path:
+            return
+
+        try:
+            model = self.model  # source model (NOT proxy)
+
+            with open(path, "w", encoding="utf-8") as f:
+                f.write("#EXTM3U\n")
+
+                for row in range(model.rowCount()):
+                    index = model.index(row, 0)
+                    name = model.data(index).strip()
+
+                    # find matching URL in playlist
+                    for display, url in self.playlist:
+                        if display == name:
+                            f.write(f"#EXTINF:-1,{display}\n")
+                            f.write(f"{url}\n")
+                            break
+
+            QMessageBox.information(self, "Saved", "Playlist saved successfully!")
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", str(e)) 
+
 
     # ---------- Clear ---------
     def clearlist(self):
