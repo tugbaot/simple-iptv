@@ -21,6 +21,7 @@ Pretty flexible to make it look how you want with a nice selection of inbuilt th
 - Search: search box to filter & search for channels
 - Open M3U: to open a m3u file
 - Load URL: to load an online m3u from an IPTV provider
+- Save M3U: to save the current playlist as an m3u file
 - Rename: to rename a highlighted channel
 - Clear list: clear current channels
 - Play: or double click to play
@@ -81,6 +82,7 @@ list_name = playlist.json
 # the filename used to save your playlist
 ```
 
-### To do
+### To do, maybe..
 - Favourites
+- Save m3u for the current filtered list (probably pointless)
 
