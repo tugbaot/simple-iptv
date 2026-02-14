@@ -19,7 +19,7 @@ Pretty flexible to make it look how you want with a nice selection of inbuilt th
 
 ### Basic features
 - Search: search box to filter & search for channels
-- Favourtites: toggle view only favs or all channels
+- Favourites: toggle view only favs or all channels
 - Open M3U: to open a m3u file
 - Load URL: to load an online m3u from an IPTV provider
 - Save M3U: to save the current playlist (all or favs only) as an m3u file
