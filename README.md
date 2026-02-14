@@ -36,7 +36,7 @@ You can change many things, see:
 ### Tips
 - If you don't want to run from the command line, you can create a normal desktop shortcut with the following as target: ```C:\<path to>\pythonw.exe "C:\<path to>\simple-iptv.py"```
 - When you load a providers IPTV list, it is saved as loaded.m3u so you can rename and have a collection of m3u files for different sources you can quickly load.
-- To try out some IPTV, you can add this url to config.txt [https://iptv-org.github.io/iptv/index.m3u](https://iptv-org.github.io/iptv/index.m3u) which has a curated list of free channels from across the world. You can find more IPTV providers here [https://github.com/iptv-org/awesome-iptv](https://github.com/iptv-org/awesome-iptv?tab=readme-ov-file#providers)
+- To try out some IPTV, you can try this url [https://iptv-org.github.io/iptv/index.m3u](https://iptv-org.github.io/iptv/index.m3u) which has a curated list of free channels from across the world. You can find more IPTV providers here [https://github.com/iptv-org/awesome-iptv](https://github.com/iptv-org/awesome-iptv?tab=readme-ov-file#providers)
 
 ### Config
 ```
@@ -70,9 +70,6 @@ row_height: 24
 app_font = Century Gothic
 app_font_size = 13px
 # can be any font you have installed
-
-m3u_url = https://iptv-org.github.io/iptv/index.m3u
-# url of your online provider
 
 mpv_path = mpv.exe
 # the path to mpv.exe. the default is 'mpv.exe' where it's on PATH
