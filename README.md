@@ -29,8 +29,7 @@ Pretty flexible to make it look how you want with a nice selection of inbuilt th
 - Reorder the channels by dragging the TV icons
 
 You can change many things, see:
-- config.txt for various changes to the layout
-- config.txt to add your IPTV provider url
+- config.txt for various changes to the look & layout
 - theme.xml for the colorscheme
 
 ### Tips
