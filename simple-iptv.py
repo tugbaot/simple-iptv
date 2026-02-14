@@ -43,7 +43,6 @@ APP_FONT = config.get('config', 'app_font')
 APP_FONT_SIZE = config.get('config', 'app_font_size')
 STAR_COLOR = config.get('config', 'star_color')
 STAR_EMPTY_COLOR = config.get('config', 'star_empty_color')
-START_MODE = config.get('config', 'start_mode')
 ROW_HEIGHT = int(config.get('config', 'row_height'))
 APP_HEIGHT = int(config.get('config', 'app_height'))
 APP_WIDTH = int(config.get('config', 'app_width'))
@@ -194,6 +193,7 @@ class M3UPlayer(QMainWindow):
         btn_info = self.make_button(" Info", "mdi.information", self.info)
         btn_quit = self.make_button(" Quit", "mdi.exit-to-app", self.quit)
         self.btn_fav = self.make_button(" Favourites", "mdi.star-outline", self.toggle_favourites)
+        self.btn_fav.setToolTip("Show favourites only")
 
         controls.insertWidget(0, btn_search) # comment out if you don't want to toggle the search bar
         controls.insertWidget(1, self.btn_fav)
@@ -216,7 +216,7 @@ class M3UPlayer(QMainWindow):
         btn.setCursor(Qt.PointingHandCursor)
         btn.setMinimumWidth(140)
         btn.setIconSize(QSize(20, 20))
-        btn.setStyleSheet("text-align: left; padding-left: 12px; font-size: 8pt; font-weight: normal; border-width: 1px;")
+        btn.setStyleSheet("text-align: left; padding-left: 12px; font-size: 8pt; font-weight: normal; border-width: 1px; ")
         btn.clicked.connect(callback)
         return btn
 
@@ -224,11 +224,12 @@ class M3UPlayer(QMainWindow):
     def toggle_favourites(self):
         self.show_favourites = not self.show_favourites
 
-        # Update button icon
         if self.show_favourites:
             self.btn_fav.setIcon(self.fav_icon_on)
+            self.btn_fav.setToolTip("Showing favourites — click to show ALL channels")
         else:
             self.btn_fav.setIcon(self.fav_icon_off)
+            self.btn_fav.setToolTip("Show favourites only")
 
         self.refresh_list()
 
@@ -347,7 +348,8 @@ class M3UPlayer(QMainWindow):
                     name = model.data(index).strip()
 
                     # find matching URL in playlist
-                    for display, url in self.playlist:
+                    for item in self.playlist:
+                        display, url = item[0], item[1]
                         if display == name:
                             f.write(f"#EXTINF:-1,{display}\n")
                             f.write(f"{url}\n")
@@ -371,7 +373,10 @@ class M3UPlayer(QMainWindow):
     # ---------- Quit -------------
     def quit(self):
         with open(STATE_FILE, "w", encoding="utf-8") as f:
-                json.dump(self.playlist, f, indent=2)
+            json.dump({
+                "playlist": self.playlist,
+                "show_favourites": self.show_favourites
+            }, f, indent=2)
         sys.exit()
 
     # ---------- Renaming ---------
@@ -422,38 +427,63 @@ class M3UPlayer(QMainWindow):
 
         try:
             with open(STATE_FILE, "r", encoding="utf-8") as f:
-                self.playlist = json.load(f)
+                data = json.load(f)
+
+                # Support old save format
+                if isinstance(data, list):
+                    self.playlist = data
+                    self.show_favourites = False
+                else:
+                    self.playlist = data.get("playlist", [])
+                    self.show_favourites = data.get("show_favourites", False)
+
                 for item in self.playlist:
                     if len(item) == 2:
                         item.append(False)
-            self.refresh_list()
+            # Update favourites button icon/state
+                if self.show_favourites:
+                    self.btn_fav.setIcon(self.fav_icon_on)
+                    self.btn_fav.setToolTip("Showing favourites — click to show ALL channels")
+                else:
+                    self.btn_fav.setIcon(self.fav_icon_off)
+                    self.btn_fav.setToolTip("Show favourites only")
+
+                self.refresh_list()
         except Exception:
             pass
 
     # ---------- Closing ----------
     def closeEvent(self, event):
-        new_order = []
 
-        model = self.model  # source model (QStringListModel or QStandardItemModel)
+        # Only reorder if showing FULL unfiltered list
+        if not self.show_favourites and not self.search.text().strip():
 
-        for row in range(model.rowCount()):
-            index = model.index(row, 0)
-            name = model.data(index).strip()
+            new_order = []
+            model = self.model
 
-            for entry in self.playlist:
-                if entry[0] == name:
-                    new_order.append(entry)
-                    break
+            for row in range(model.rowCount()):
+                index = model.index(row, 0)
+                name = model.data(index).strip()
 
-        self.playlist = new_order
+                for entry in self.playlist:
+                    if entry[0] == name:
+                        new_order.append(entry)
+                        break
 
+            self.playlist = new_order
+
+        # Always save full playlist
         try:
             with open(STATE_FILE, "w", encoding="utf-8") as f:
-                json.dump(self.playlist, f, indent=2)
+                json.dump({
+                    "playlist": self.playlist,
+                    "show_favourites": self.show_favourites
+                }, f, indent=2)
         except Exception as e:
             print("Failed to save state:", e)
 
         event.accept()
+
 
 # ---------- Entry Point ----------
 if __name__ == "__main__":

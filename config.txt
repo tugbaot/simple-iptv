@@ -22,9 +22,10 @@ playlist_icon = mdi.television-classic
 app_theme = theme.xml
 # default is theme.xml, but you can add your own or use those from qt_material (see below for the full list)
 
-star_color = #bdf076ff
+star_color = #bdf076
 star_empty_color = #777777
 # the colors of the favourites star icon
+
 
 row_height: 24
 # for the spacing between playlist items
@@ -35,7 +36,6 @@ app_font_size = 13px
 
 m3u_url = https://iptv-org.github.io/iptv/index.m3u
 # url of your online provider
-# TIP: where an online provider has thousands of channels, you can use Dispatcharr to rationalise these.
 
 mpv_path = mpv.exe
 # the path to mpv.exe. the default is 'mpv.exe' where it's on PATH
@@ -43,8 +43,6 @@ mpv_path = mpv.exe
 list_name = playlist.json
 # the filename used to save your playlist
 
-start_mode = favourites
-# whether the app will show favs at start up or not (anything other than 'favourites' will show all)
 
 # ---------------------------------
 # alternate themes for app_theme
