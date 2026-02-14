@@ -34,9 +34,6 @@ app_font = Century Gothic
 app_font_size = 13px
 # can be any font you have installed
 
-m3u_url = https://iptv-org.github.io/iptv/index.m3u
-# url of your online provider
-
 mpv_path = mpv.exe
 # the path to mpv.exe. the default is 'mpv.exe' where it's on PATH
 

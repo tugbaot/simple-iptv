@@ -33,7 +33,6 @@ config.read(r'config.txt')
 # ------- Configuration -------------
 MPV_PATH = config.get('config', 'mpv_path')
 STATE_FILE = config.get('config', 'list_name')
-M3U_URL = config.get('config', 'm3u_url')
 APP_NAME = config.get('config', 'app_name')
 APP_ICON = config.get('config', 'app_icon')
 APP_ICON_COLOR = config.get('config', 'app_icon_color')
@@ -46,6 +45,10 @@ STAR_EMPTY_COLOR = config.get('config', 'star_empty_color')
 ROW_HEIGHT = int(config.get('config', 'row_height'))
 APP_HEIGHT = int(config.get('config', 'app_height'))
 APP_WIDTH = int(config.get('config', 'app_width'))
+BUTTON_STYLE = (
+    "text-align: left; padding-left: 12px; font-size: 8pt; "
+    "font-weight: normal; border-width: 1px;"
+)
 INFO = "A simple, lightweight IPTV manager using mpv.exe to play iptv channels. I created this as I wanted something simple and quick to just launch some TV.\n\nFeatures:\n• Search: to search channel list\n• Favourites: toggle view only favs or all channels\n• Open M3U: to open a m3u file\n• Save M3U: to save the current playlist (all or favs only)\n• Load URL: to load an online m3u from an IPTV provider\n• Rename: to rename a highlighted channel\n• Clear list: clear all channels\n• Play: or double click to play\n• Reorder the channels by dragging the TV icons\n\nYou can tweak many things: \n• config.txt for various changes to the layout\n• config.txt to add your IPTV provider url\n• theme.xml for the colorscheme\n\n🌐 https://github.com/tugbaot/simple-iptv"
 
 # ------- Right then ---------------
@@ -216,7 +219,7 @@ class M3UPlayer(QMainWindow):
         btn.setCursor(Qt.PointingHandCursor)
         btn.setMinimumWidth(140)
         btn.setIconSize(QSize(20, 20))
-        btn.setStyleSheet("text-align: left; padding-left: 12px; font-size: 8pt; font-weight: normal; border-width: 1px; ")
+        btn.setStyleSheet(BUTTON_STYLE)
         btn.clicked.connect(callback)
         return btn
 
@@ -299,7 +302,33 @@ class M3UPlayer(QMainWindow):
 
 # ---------- Load URL ---------
     def load_url(self):
-        response = requests.get(M3U_URL)
+        dialog = QInputDialog(self)
+        dialog.setWindowTitle("Load URL")
+        dialog.setLabelText("Enter playlist URL:")
+        dialog.setOkButtonText("Load")
+        dialog.setCancelButtonText("Cancel")
+        dialog.resize(400, 120)
+
+        for btn in dialog.findChildren(QPushButton):
+            btn.setStyleSheet(BUTTON_STYLE)
+
+        buttons = dialog.findChildren(QPushButton)
+
+        for btn in buttons:
+            if "Load" in btn.text():
+                btn.setIcon(qta.icon("mdi.link"))
+            elif "Cancel" in btn.text():
+                btn.setIcon(qta.icon("mdi.close"))
+
+        if dialog.exec():
+            url = dialog.textValue().strip()
+        else:
+            return
+
+        if not url:
+            return
+
+        response = requests.get(url)
         m3u = response.text
         with open("loaded.m3u", "w", encoding="utf-8") as m:
             m.write(m3u)
