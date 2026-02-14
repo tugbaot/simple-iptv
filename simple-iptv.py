@@ -2,9 +2,7 @@
 # Created: 02/02/2026
 # Simple IPTV manager thing
 # ##########################
-# TO DO
-# Double click is iffy
-# ##########################
+
 import sys
 import os
 import json
@@ -17,7 +15,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QStyle, QInputDialog, QMessageBox,
     QLineEdit, QLabel, QListView, QStyledItemDelegate, QAbstractItemView
 )
-from PySide6.QtCore import Qt, QSize, QSortFilterProxyModel, QStringListModel, QRect
+from PySide6.QtCore import Qt, QSize, QSortFilterProxyModel, QStringListModel, QRect, QEvent
 from PySide6.QtGui import QIcon, QPainter, QTextOption
 
 from qt_material import apply_stylesheet
@@ -43,6 +41,8 @@ PLAYLIST_ICON = config.get('config', 'playlist_icon')
 APP_THEME = config.get('config', 'app_theme')
 APP_FONT = config.get('config', 'app_font')
 APP_FONT_SIZE = config.get('config', 'app_font_size')
+STAR_COLOR = config.get('config', 'star_color')
+STAR_EMPTY_COLOR = config.get('config', 'star_empty_color')
 ROW_HEIGHT = int(config.get('config', 'row_height'))
 APP_HEIGHT = int(config.get('config', 'app_height'))
 APP_WIDTH = int(config.get('config', 'app_width'))
@@ -54,6 +54,8 @@ class PlaylistDelegate(QStyledItemDelegate):
         super().__init__(parent)
         self.height = height
         self.icon = icon
+        self.star_on = qta.icon("mdi.star", color=STAR_COLOR)
+        self.star_off = qta.icon("mdi.star-outline", color=STAR_EMPTY_COLOR)
 
     def sizeHint(self, option, index):
         return QSize(option.rect.width(), self.height)
@@ -64,40 +66,51 @@ class PlaylistDelegate(QStyledItemDelegate):
         rect = option.rect
         text = index.data(Qt.DisplayRole)
 
-        # ---- Background (hover / selection handled by style)
         if option.state & QStyle.State_Selected:
             painter.fillRect(rect, option.palette.highlight())
-        #elif option.state & QStyle.State_MouseOver:
-        #    painter.fillRect(rect, option.palette.base().color().lighter(105))
-        # -- this seems to cause a bug where a black highlight bar might appear on prev selection 
 
-        # ---- Icon
         icon_size = 20
-        icon_margin = 8
+        margin = 8
 
-        icon_rect = QRect(
-            rect.left() + icon_margin,
-            rect.top() + (rect.height() - icon_size) // 2,
-            icon_size,
-            icon_size
-        )
+        icon_rect = QRect(rect.left()+margin,
+                          rect.top()+(rect.height()-icon_size)//2,
+                          icon_size, icon_size)
         self.icon.paint(painter, icon_rect)
 
-        # ---- Text (multi-line, word wrap)
-        text_rect = QRect(
-            icon_rect.right() + 8,
-            rect.top() + 4,
-            rect.width() - icon_rect.width() - 24,
-            rect.height() - 8
-        )
+        star_rect = QRect(rect.right()-30,
+                          rect.top()+(rect.height()-icon_size)//2,
+                          icon_size, icon_size)
 
-        text_option = QTextOption()
-        text_option.setWrapMode(QTextOption.WordWrap)
+        main = self.parent().window()
+        playlist_row = main.visible_rows[index.row()]
+        fav = main.playlist[playlist_row][2]
 
-        painter.setPen(option.palette.text().color())
-        painter.drawText(text_rect, text, text_option)
+        (self.star_on if fav else self.star_off).paint(painter, star_rect)
 
+        text_rect = QRect(icon_rect.right()+8, rect.top()+4,
+                          rect.width()-80, rect.height()-8)
+
+        opt = QTextOption()
+        opt.setWrapMode(QTextOption.WordWrap)
+
+        painter.drawText(text_rect, text, opt)
         painter.restore()
+
+    def editorEvent(self, event, model, option, index):
+        if event.type() == QEvent.MouseButtonRelease and event.button() == Qt.LeftButton:
+            rect = option.rect
+            star_rect = QRect(rect.right()-30,
+                              rect.top()+(rect.height()-20)//2,
+                              20, 20)
+
+            if star_rect.contains(event.pos()):
+                main = self.parent().window()
+                playlist_row = main.visible_rows[index.row()]
+                main.playlist[playlist_row][2] = not main.playlist[playlist_row][2]
+                main.refresh_list()
+                return True
+        return False
+
 
 class M3UPlayer(QMainWindow):
     def __init__(self):
@@ -107,7 +120,8 @@ class M3UPlayer(QMainWindow):
         self.setWindowIcon(qta.icon(APP_ICON,color=APP_ICON_COLOR))
         self.resize(APP_WIDTH, APP_HEIGHT)
 
-        self.playlist = [] 
+        self.playlist = []
+        self.show_favourites = False 
 
         self.init_ui()
         self.load_state()
@@ -149,6 +163,7 @@ class M3UPlayer(QMainWindow):
         self.list_view.doubleClicked.connect(self.play_selected)
         self.list_view.setDragDropMode(QListView.InternalMove)
         self.list_view.setDefaultDropAction(Qt.MoveAction)
+        self.list_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         playlist_icon = qta.icon(PLAYLIST_ICON)
 
@@ -173,8 +188,10 @@ class M3UPlayer(QMainWindow):
         btn_play = self.make_button(" Play", "mdi.play-circle", self.play_selected)
         btn_info = self.make_button(" Info", "mdi.information", self.info)
         btn_quit = self.make_button(" Quit", "mdi.exit-to-app", self.quit)
+        btn_fav = self.make_button(" Favourites", "mdi.star", self.toggle_favourites)
 
         controls.insertWidget(0, btn_search) # comment out if you don't want to toggle the search bar
+        controls.insertWidget(1, btn_fav)
         controls.addWidget(btn_open)
         controls.addWidget(btn_url)
         controls.addWidget(btn_save)
@@ -199,8 +216,19 @@ class M3UPlayer(QMainWindow):
         return btn
 
     # ---------- Playlist ----------
+    def toggle_favourites(self):
+        self.show_favourites = not self.show_favourites
+        self.refresh_list()
+
     def refresh_list(self):
-        names = [name for name, _ in self.playlist]
+        names = []
+        self.visible_rows = []  # maps view row → playlist row
+
+        for i, item in enumerate(self.playlist):
+            if not self.show_favourites or item[2]:
+                names.append(item[0])
+                self.visible_rows.append(i)
+
         self.model.setStringList(names)
 
     def filter_changed(self, text):
@@ -248,7 +276,7 @@ class M3UPlayer(QMainWindow):
                         name = line.split(",", 1)[-1]
                     else:
                         display = name if name else os.path.basename(line)
-                        self.playlist.append([display, line])
+                        self.playlist.append([display, line, False])
                         name = None
 
             self.refresh_list()
@@ -276,7 +304,7 @@ class M3UPlayer(QMainWindow):
                         name = line.split(",", 1)[-1]
                     else:
                         display = name if name else os.path.basename(line)
-                        self.playlist.append([display, line])
+                        self.playlist.append([display, line, False])
                         name = None
 
             self.refresh_list()
@@ -381,6 +409,9 @@ class M3UPlayer(QMainWindow):
         try:
             with open(STATE_FILE, "r", encoding="utf-8") as f:
                 self.playlist = json.load(f)
+                for item in self.playlist:
+                    if len(item) == 2:
+                        item.append(False)
             self.refresh_list()
         except Exception:
             pass

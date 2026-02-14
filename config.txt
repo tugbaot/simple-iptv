@@ -13,7 +13,7 @@ app_icon_color = #292623
 # the icon color in the title bar, can be text or RGB
 
 app_height: 640
-app_width: 860
+app_width: 640
 # the size of the application window
 
 playlist_icon = mdi.television-classic
@@ -21,6 +21,10 @@ playlist_icon = mdi.television-classic
 
 app_theme = theme.xml
 # default is theme.xml, but you can add your own or use those from qt_material (see below for the full list)
+
+star_color = #bdf076ff
+star_empty_color = #777777
+# the colors of the favourites star icon
 
 row_height: 24
 # for the spacing between playlist items
@@ -38,6 +42,9 @@ mpv_path = mpv.exe
 
 list_name = playlist.json
 # the filename used to save your playlist
+
+start_mode = favourites
+# whether the app will show favs at start up or not (anything other than 'favourites' will show all)
 
 # ---------------------------------
 # alternate themes for app_theme
