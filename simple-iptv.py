@@ -43,6 +43,7 @@ APP_FONT = config.get('config', 'app_font')
 APP_FONT_SIZE = config.get('config', 'app_font_size')
 STAR_COLOR = config.get('config', 'star_color')
 STAR_EMPTY_COLOR = config.get('config', 'star_empty_color')
+START_MODE = config.get('config', 'start_mode')
 ROW_HEIGHT = int(config.get('config', 'row_height'))
 APP_HEIGHT = int(config.get('config', 'app_height'))
 APP_WIDTH = int(config.get('config', 'app_width'))
@@ -82,7 +83,8 @@ class PlaylistDelegate(QStyledItemDelegate):
                           icon_size, icon_size)
 
         main = self.parent().window()
-        playlist_row = main.visible_rows[index.row()]
+        source_index = main.proxy_model.mapToSource(index)
+        playlist_row = main.visible_rows[source_index.row()]
         fav = main.playlist[playlist_row][2]
 
         (self.star_on if fav else self.star_off).paint(painter, star_rect)
@@ -105,7 +107,8 @@ class PlaylistDelegate(QStyledItemDelegate):
 
             if star_rect.contains(event.pos()):
                 main = self.parent().window()
-                playlist_row = main.visible_rows[index.row()]
+                source_index = main.proxy_model.mapToSource(index)
+                playlist_row = main.visible_rows[source_index.row()]
                 main.playlist[playlist_row][2] = not main.playlist[playlist_row][2]
                 main.refresh_list()
                 return True
@@ -121,7 +124,9 @@ class M3UPlayer(QMainWindow):
         self.resize(APP_WIDTH, APP_HEIGHT)
 
         self.playlist = []
-        self.show_favourites = False 
+        self.show_favourites = False
+        self.fav_icon_on = qta.icon("mdi.star", color=STAR_COLOR)
+        self.fav_icon_off = qta.icon("mdi.star-outline", color=STAR_EMPTY_COLOR)
 
         self.init_ui()
         self.load_state()
@@ -188,10 +193,10 @@ class M3UPlayer(QMainWindow):
         btn_play = self.make_button(" Play", "mdi.play-circle", self.play_selected)
         btn_info = self.make_button(" Info", "mdi.information", self.info)
         btn_quit = self.make_button(" Quit", "mdi.exit-to-app", self.quit)
-        btn_fav = self.make_button(" Favourites", "mdi.star", self.toggle_favourites)
+        self.btn_fav = self.make_button(" Favourites", "mdi.star-outline", self.toggle_favourites)
 
         controls.insertWidget(0, btn_search) # comment out if you don't want to toggle the search bar
-        controls.insertWidget(1, btn_fav)
+        controls.insertWidget(1, self.btn_fav)
         controls.addWidget(btn_open)
         controls.addWidget(btn_url)
         controls.addWidget(btn_save)
@@ -218,6 +223,13 @@ class M3UPlayer(QMainWindow):
     # ---------- Playlist ----------
     def toggle_favourites(self):
         self.show_favourites = not self.show_favourites
+
+        # Update button icon
+        if self.show_favourites:
+            self.btn_fav.setIcon(self.fav_icon_on)
+        else:
+            self.btn_fav.setIcon(self.fav_icon_off)
+
         self.refresh_list()
 
     def refresh_list(self):
@@ -391,6 +403,8 @@ class M3UPlayer(QMainWindow):
         row = source_index.row()
 
         media_path = self.playlist[row][1]
+        print(MPV_PATH)
+        print(media_path)
 
         try:
             subprocess.Popen([MPV_PATH, media_path])
@@ -451,6 +465,7 @@ if __name__ == "__main__":
         theme=APP_THEME,
         extra={"font_family": APP_FONT, "font_size": APP_FONT_SIZE,},
     )
+    
     window = M3UPlayer()
     window.show()
 
