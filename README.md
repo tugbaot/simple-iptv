@@ -73,7 +73,6 @@ app_font_size = 13px
 
 m3u_url = https://iptv-org.github.io/iptv/index.m3u
 # url of your online provider
-# TIP: where an online provider has thousands of channels, you can use Dispatcharr to rationalise these.
 
 mpv_path = mpv.exe
 # the path to mpv.exe. the default is 'mpv.exe' where it's on PATH
