@@ -195,7 +195,7 @@ class M3UPlayer(QMainWindow):
         btn_search = self.make_button(" Search", "mdi.magnify", self.toggle_search) 
         btn_open = self.make_button(" Open M3U", "mdi.folder-open", self.open_m3u)
         btn_url = self.make_button(" Load URL", "mdi.link", self.load_url)
-        btn_save = self.make_button(" Save M3U", "mdi.link", self.save_m3u)
+        btn_save = self.make_button(" Save M3U", "mdi.content-save-outline", self.save_m3u)
         btn_rename = self.make_button(" Rename", "mdi.pencil", self.rename_item)
         btn_clear = self.make_button(" Clear list", "mdi.delete-outline", self.clearlist)
         btn_play = self.make_button(" Play", "mdi.play-circle", self.play_selected)
