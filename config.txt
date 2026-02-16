@@ -12,9 +12,12 @@ app_icon = mdi.television-classic
 app_icon_color = #292623
 # the icon color in the title bar, can be text or RGB
 
-app_height: 640
+app_height: 720
 app_width: 640
 # the size of the application window
+
+fullscreen = false
+# if True, overrides the app_height and app_width
 
 playlist_icon = mdi.television-classic
 # icon used in the playlist

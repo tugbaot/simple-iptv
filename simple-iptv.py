@@ -2,6 +2,9 @@
 # Created: 02/02/2026
 # Simple IPTV manager thing
 # ##########################
+# TO DO ####################
+# load url dialog to respect theme
+# test load url (getting max retries)
 
 import sys
 import os
@@ -45,6 +48,7 @@ STAR_EMPTY_COLOR = config.get('config', 'star_empty_color')
 ROW_HEIGHT = int(config.get('config', 'row_height'))
 APP_HEIGHT = int(config.get('config', 'app_height'))
 APP_WIDTH = int(config.get('config', 'app_width'))
+FULLSCREEN = config.get('config', 'fullscreen')
 BUTTON_STYLE = (
     "text-align: left; padding-left: 12px; font-size: 8pt; "
     "font-weight: normal; border-width: 1px;"
@@ -129,6 +133,8 @@ class M3UPlayer(QMainWindow):
         self.show_favourites = False
         self.fav_icon_on = qta.icon("mdi.star", color=STAR_COLOR)
         self.fav_icon_off = qta.icon("mdi.star-outline", color=STAR_EMPTY_COLOR)
+        if FULLSCREEN == "True":
+            self.showMaximized()
 
         self.init_ui()
         self.load_state()
@@ -187,7 +193,7 @@ class M3UPlayer(QMainWindow):
         controls.setSpacing(8)
 
         btn_search = self.make_button(" Search", "mdi.magnify", self.toggle_search) 
-        btn_open = self.make_button(" Open M3U", "mdi.folder-open", self.load_m3u)
+        btn_open = self.make_button(" Open M3U", "mdi.folder-open", self.open_m3u)
         btn_url = self.make_button(" Load URL", "mdi.link", self.load_url)
         btn_save = self.make_button(" Save M3U", "mdi.link", self.save_m3u)
         btn_rename = self.make_button(" Rename", "mdi.pencil", self.rename_item)
@@ -271,8 +277,8 @@ class M3UPlayer(QMainWindow):
         self.list_view.setAcceptDrops(not searching)
         self.list_view.setDropIndicatorShown(not searching)
 
-    # ---------- Load M3U ---------
-    def load_m3u(self):
+    # ---------- Open M3U ---------
+    def open_m3u(self):
         path, _ = QFileDialog.getOpenFileName(
             self, "Open M3U", "", "M3U Files (*.m3u)"
         )
@@ -302,57 +308,158 @@ class M3UPlayer(QMainWindow):
 
 # ---------- Load URL ---------
     def load_url(self):
-        dialog = QInputDialog(self)
-        dialog.setWindowTitle("Load URL")
-        dialog.setLabelText("Enter playlist URL:")
-        dialog.setOkButtonText("Load")
-        dialog.setCancelButtonText("Cancel")
-        dialog.resize(400, 120)
-
-        for btn in dialog.findChildren(QPushButton):
-            btn.setStyleSheet(BUTTON_STYLE)
-
-        buttons = dialog.findChildren(QPushButton)
-
-        for btn in buttons:
-            if "Load" in btn.text():
-                btn.setIcon(qta.icon("mdi.link"))
-            elif "Cancel" in btn.text():
-                btn.setIcon(qta.icon("mdi.close"))
-
-        if dialog.exec():
-            url = dialog.textValue().strip()
-        else:
+        url, ok = QInputDialog.getText(self, "Open URL", "Enter M3U or Xtream URL:")
+        if not ok or not url.strip():
             return
 
-        if not url:
+        url = url.strip()
+
+        # 🧠 AUTO DETECT XTREAM
+        xtream_cfg = self.parse_xtream_url(url)
+
+        if xtream_cfg:
+        # Build the real M3U URL and load immediately
+            server = xtream_cfg["server"]
+            user = xtream_cfg["username"]
+            pwd = xtream_cfg["password"]
+
+            m3u_url = f"{server}/get.php?username={user}&password={pwd}&type=m3u_plus&output=ts"
+
+            try:
+                r = requests.get(m3u_url, timeout=15)
+                r.raise_for_status()
+            except Exception as e:
+                QMessageBox.critical(self, "Xtream Error", str(e))
+                return
+
+            self.playlist.clear()
+
+            name = None
+            for line in r.text.splitlines():
+                line = line.strip()
+
+                if not line or line.startswith("#EXTM3U"):
+                    continue
+
+                if line.startswith("#EXTINF"):
+                    name = line.split(",", 1)[-1]
+                else:
+                    display = name if name else os.path.basename(line)
+                    self.playlist.append([display, line, False])
+                    name = None
+
+            self.refresh_list()
+            self.xtream_config = xtream_cfg
             return
 
-        response = requests.get(url)
-        m3u = response.text
-        with open("loaded.m3u", "w", encoding="utf-8") as m:
-            m.write(m3u)
+        # Otherwise treat as normal M3U
+        try:
+            r = requests.get(url, timeout=15)
+            r.raise_for_status()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", str(e))
+            return
 
         self.playlist.clear()
 
-        try:
-            with open("loaded.m3u", "r", encoding="utf-8", errors="ignore") as f:
+        name = None
+        for line in r.text.splitlines():
+            line = line.strip()
+
+            if not line or line.startswith("#EXTM3U"):
+                continue
+
+            if line.startswith("#EXTINF"):
+                name = line.split(",", 1)[-1]
+            else:
+                display = name if name else os.path.basename(line)
+                self.playlist.append([display, line, False])
                 name = None
-                for line in f:
-                    line = line.strip()
-                    if not line or line.startswith("#EXTM3U"):
-                        continue
-                    if line.startswith("#EXTINF"):
-                        name = line.split(",", 1)[-1]
-                    else:
-                        display = name if name else os.path.basename(line)
-                        self.playlist.append([display, line, False])
-                        name = None
 
-            self.refresh_list()
+        self.refresh_list()
 
+# --------- Parse XStream ---------
+    def parse_xtream_url(self, url):
+        """Return Xtream config dict if URL matches, else None."""
+        try:
+            if "get.php" not in url:
+                return None
+
+            from urllib.parse import urlparse, parse_qs
+
+            parsed = urlparse(url)
+            qs = parse_qs(parsed.query)
+
+            if "username" not in qs or "password" not in qs:
+                return None
+
+            server = f"{parsed.scheme}://{parsed.netloc}"
+
+            return {
+                "server": server.rstrip("/"),
+                "username": qs["username"][0],
+                "password": qs["password"][0]
+            }
+
+        except Exception:
+            return None
+
+
+# ---------- Load XStream ---------
+    def load_xstream(self):
+
+        # ---- Input dialog ----
+        server, ok = QInputDialog.getText(self, "Xtream", "Server URL:")
+        if not ok or not server.strip():
+            return
+
+        username, ok = QInputDialog.getText(self, "Xtream", "Username:")
+        if not ok or not username.strip():
+            return
+
+        password, ok = QInputDialog.getText(self, "Xtream", "Password:", QLineEdit.Password)
+        if not ok or not password.strip():
+            return
+
+        server = server.strip().rstrip("/")
+
+        # ---- Build M3U URL ----
+        url = f"{server}/get.php?username={username}&password={password}&type=m3u_plus&output=ts"
+
+        try:
+            response = requests.get(url, timeout=15)
+            response.raise_for_status()
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, "Xtream Error", f"Failed to load:\n{e}")
+            return
+
+        # ---- Parse EXACTLY like load_url ----
+        self.playlist.clear()
+
+        name = None
+        for line in response.text.splitlines():
+            line = line.strip()
+
+            if not line or line.startswith("#EXTM3U"):
+                continue
+
+            if line.startswith("#EXTINF"):
+                name = line.split(",", 1)[-1]
+            else:
+                display = name if name else os.path.basename(line)
+                self.playlist.append([display, line, False])
+                name = None
+
+        self.refresh_list()
+
+        # ---- Save Xtream credentials in memory ----
+        self.xtream_config = {
+            "server": server,
+            "username": username,
+            "password": password
+        }
+
+        QMessageBox.information(self, "Xtream", "Playlist loaded successfully!")
 
 # ---------- Save M3U ---------
     def save_m3u(self):
@@ -389,25 +496,6 @@ class M3UPlayer(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e)) 
 
-
-    # ---------- Clear ---------
-    def clearlist(self):
-        self.playlist.clear()
-        self.refresh_list()
-
-    # ---------- Info box ---------
-    def info(self):
-        ret = QMessageBox.about(self,"Info",INFO)
-
-    # ---------- Quit -------------
-    def quit(self):
-        with open(STATE_FILE, "w", encoding="utf-8") as f:
-            json.dump({
-                "playlist": self.playlist,
-                "show_favourites": self.show_favourites
-            }, f, indent=2)
-        sys.exit()
-
     # ---------- Renaming ---------
     def rename_item(self):
         index = self.list_view.currentIndex()
@@ -415,7 +503,8 @@ class M3UPlayer(QMainWindow):
             return
 
         source_index = self.proxy_model.mapToSource(index)
-        row = source_index.row()
+        visible_row = source_index.row()
+        row = self.visible_rows[visible_row]
 
         current = self.playlist[row][0]
         text, ok = QInputDialog.getText(
@@ -426,19 +515,25 @@ class M3UPlayer(QMainWindow):
             self.playlist[row][0] = text
             self.refresh_list()
 
+    # ---------- Clear ---------
+    def clearlist(self):
+        self.playlist.clear()
+        self.refresh_list()
+
     # ---------- Playback ----------
     def play_selected(self):
         index = self.list_view.currentIndex()
         if not index.isValid():
             return
 
-        # Map proxy → source
+        # Map proxy → source model row
         source_index = self.proxy_model.mapToSource(index)
-        row = source_index.row()
+        visible_row = source_index.row()
 
-        media_path = self.playlist[row][1]
-        print(MPV_PATH)
-        print(media_path)
+        # Map visible row → actual playlist row
+        playlist_row = self.visible_rows[visible_row]
+
+        media_path = self.playlist[playlist_row][1]
 
         try:
             subprocess.Popen([MPV_PATH, media_path])
@@ -448,6 +543,20 @@ class M3UPlayer(QMainWindow):
                 "mpv not found",
                 "mpv.exe not found.\nCheck MPV_PATH in config.txt.",
             )
+
+    # ---------- Info  ------------
+    def info(self):
+        ret = QMessageBox.about(self,"Info",INFO)
+
+    # ---------- Quit -------------
+    def quit(self):
+        with open(STATE_FILE, "w", encoding="utf-8") as f:
+            json.dump({
+                "playlist": self.playlist,
+                "show_favourites": self.show_favourites,
+                "xtream": getattr(self, "xtream_config", None)
+            }, f, indent=2)
+        sys.exit()
 
     # ---------- Persistence ----------
     def load_state(self):
@@ -506,13 +615,13 @@ class M3UPlayer(QMainWindow):
             with open(STATE_FILE, "w", encoding="utf-8") as f:
                 json.dump({
                     "playlist": self.playlist,
-                    "show_favourites": self.show_favourites
+                    "show_favourites": self.show_favourites,
+                    "xtream": getattr(self, "xtream_config", None)
                 }, f, indent=2)
         except Exception as e:
             print("Failed to save state:", e)
 
         event.accept()
-
 
 # ---------- Entry Point ----------
 if __name__ == "__main__":
