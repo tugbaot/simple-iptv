@@ -2,9 +2,6 @@
 # Created: 02/02/2026
 # Simple IPTV manager thing
 # ##########################
-# TO DO ####################
-# load url dialog to respect theme
-# test load url (getting max retries)
 
 import sys
 import os
@@ -170,6 +167,10 @@ class M3UPlayer(QMainWindow):
         self.proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.proxy_model.setFilterKeyColumn(0)
 
+        # SAVE ORDER after drag/drop reorder
+        self.model.modelReset.connect(self.persist_current_order)
+        
+
         # View
         self.list_view = QListView()
         self.list_view.setModel(self.proxy_model)
@@ -200,7 +201,7 @@ class M3UPlayer(QMainWindow):
         btn_clear = self.make_button(" Clear list", "mdi.delete-outline", self.clearlist)
         btn_play = self.make_button(" Play", "mdi.play-circle", self.play_selected)
         btn_info = self.make_button(" Info", "mdi.information", self.info)
-        btn_quit = self.make_button(" Quit", "mdi.exit-to-app", self.quit)
+        btn_quit = self.make_button(" Quit", "mdi.exit-to-app", self.close)
         self.btn_fav = self.make_button(" Favourites", "mdi.star-outline", self.toggle_favourites)
         self.btn_fav.setToolTip("Show favourites only")
 
@@ -306,13 +307,33 @@ class M3UPlayer(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))
 
-# ---------- Load URL ---------
+    # ---------- Load URL ---------
     def load_url(self):
-        url, ok = QInputDialog.getText(self, "Open URL", "Enter M3U or Xtream URL:")
-        if not ok or not url.strip():
-            return
+        dialog = QInputDialog(self)
+        dialog.setWindowTitle("Load URL")
+        dialog.setLabelText("Enter playlist URL:")
+        dialog.setOkButtonText("Load")
+        dialog.setCancelButtonText("Cancel")
+        dialog.resize(400, 120)
 
-        url = url.strip()
+        # Match app button styling
+        for btn in dialog.findChildren(QPushButton):
+            btn.setCursor(Qt.PointingHandCursor)
+            btn.setMinimumWidth(100)
+            btn.setIconSize(QSize(20, 20))
+            btn.setStyleSheet(
+                "text-align: left; padding-left: 12px; font-size: 8pt; "
+                "font-weight: normal; border-width: 1px;"
+            )
+            if "Load" in btn.text():
+                btn.setIcon(qta.icon("mdi.link"))
+            elif "Cancel" in btn.text():
+                btn.setIcon(qta.icon("mdi.close"))
+
+        if dialog.exec():
+            url = dialog.textValue().strip()
+        else:
+            return
 
         # 🧠 AUTO DETECT XTREAM
         xtream_cfg = self.parse_xtream_url(url)
@@ -378,7 +399,7 @@ class M3UPlayer(QMainWindow):
 
         self.refresh_list()
 
-# --------- Parse XStream ---------
+    # --------- Parse XStream ---------
     def parse_xtream_url(self, url):
         """Return Xtream config dict if URL matches, else None."""
         try:
@@ -405,7 +426,7 @@ class M3UPlayer(QMainWindow):
             return None
 
 
-# ---------- Load XStream ---------
+    # ---------- Load XStream ---------
     def load_xstream(self):
 
         # ---- Input dialog ----
@@ -461,8 +482,10 @@ class M3UPlayer(QMainWindow):
 
         QMessageBox.information(self, "Xtream", "Playlist loaded successfully!")
 
-# ---------- Save M3U ---------
+    # ---------- Save M3U ---------
     def save_m3u(self):
+        self.persist_current_order()
+
         path, _ = QFileDialog.getSaveFileName(
             self,
             "Save playlist",
@@ -548,16 +571,6 @@ class M3UPlayer(QMainWindow):
     def info(self):
         ret = QMessageBox.about(self,"Info",INFO)
 
-    # ---------- Quit -------------
-    def quit(self):
-        with open(STATE_FILE, "w", encoding="utf-8") as f:
-            json.dump({
-                "playlist": self.playlist,
-                "show_favourites": self.show_favourites,
-                "xtream": getattr(self, "xtream_config", None)
-            }, f, indent=2)
-        sys.exit()
-
     # ---------- Persistence ----------
     def load_state(self):
         if not os.path.exists(STATE_FILE):
@@ -589,28 +602,36 @@ class M3UPlayer(QMainWindow):
                 self.refresh_list()
         except Exception:
             pass
+    # ---------- Helper: persist reorder ----------
+    def persist_current_order(self):
+        """Save current drag/drop order back into self.playlist."""
+
+        if self.search.text().strip():
+            return
+
+        new_order = []
+
+        for row in range(self.model.rowCount()):
+            name = self.model.data(self.model.index(row, 0))
+
+            for item in self.playlist:
+                if item[0] == name:
+                    new_order.append(item)
+                    break
+
+        if not self.show_favourites:
+            self.playlist = new_order
+        else:
+            fav_iter = iter(new_order)
+            for i in range(len(self.playlist)):
+                if self.playlist[i][2]:
+                    self.playlist[i] = next(fav_iter)
 
     # ---------- Closing ----------
     def closeEvent(self, event):
 
-        # Only reorder if showing FULL unfiltered list
-        if not self.show_favourites and not self.search.text().strip():
+        self.persist_current_order()
 
-            new_order = []
-            model = self.model
-
-            for row in range(model.rowCount()):
-                index = model.index(row, 0)
-                name = model.data(index).strip()
-
-                for entry in self.playlist:
-                    if entry[0] == name:
-                        new_order.append(entry)
-                        break
-
-            self.playlist = new_order
-
-        # Always save full playlist
         try:
             with open(STATE_FILE, "w", encoding="utf-8") as f:
                 json.dump({
