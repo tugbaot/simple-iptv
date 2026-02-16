@@ -21,7 +21,7 @@ Pretty flexible to make it look how you want with a nice selection of inbuilt th
 - Search: search box to filter & search for channels
 - Favourites: toggle view only favs or all channels
 - Open M3U: to open a m3u file
-- Load URL: to load an online m3u from an IPTV provider
+- Load URL: to load an online m3u/XStream from an IPTV provider
 - Save M3U: to save the current playlist (all or favs only) as an m3u file
 - Rename: to rename a highlighted channel
 - Clear list: clear current channels
@@ -34,7 +34,6 @@ You can change many things, see:
 
 ### Tips
 - If you don't want to run from the command line, you can create a normal desktop shortcut with the following as target: ```C:\<path to>\pythonw.exe "C:\<path to>\simple-iptv.py"```
-- When you load a providers IPTV list, it is saved as loaded.m3u so you can rename and have a collection of m3u files for different sources you can quickly load.
 - To try out some IPTV, you can try this url [https://iptv-org.github.io/iptv/index.m3u](https://iptv-org.github.io/iptv/index.m3u) which has a curated list of free channels from across the world. You can find more IPTV providers here [https://github.com/iptv-org/awesome-iptv](https://github.com/iptv-org/awesome-iptv?tab=readme-ov-file#providers)
 
 ### Config
@@ -56,6 +55,9 @@ app_icon_color = #292623
 app_height: 560
 app_width: 800
 # the size of the application window
+
+fullscreen = false
+# if True, overrides the app_height and app_width
 
 playlist_icon = mdi.television-classic
 # icon used in the playlist
