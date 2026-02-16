@@ -29,7 +29,6 @@ star_color = #bdf076
 star_empty_color = #777777
 # the colors of the favourites star icon
 
-
 row_height: 24
 # for the spacing between playlist items
 
