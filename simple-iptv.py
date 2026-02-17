@@ -30,6 +30,7 @@ dname = os.path.dirname(abspath)
 os.chdir(dname)
 
 # ------- Read config ---------------
+# specifies comment_prefixes to trick it into leaving # comments in the file
 config = configparser.ConfigParser(comment_prefixes='/', allow_no_value=True)
 config.read('config.txt')
 
@@ -190,7 +191,6 @@ class PlaylistModel(QAbstractListModel):
     def get_playlist_copy(self):
         return [item[:] for item in self._playlist]
 
-
 # ------- Custom Proxy for Favourites -----------
 class FavouriteFilterProxy(QSortFilterProxyModel):
     def __init__(self, parent=None):
@@ -208,8 +208,15 @@ class FavouriteFilterProxy(QSortFilterProxyModel):
             self.invalidate()
 
     def filterAcceptsRow(self, source_row, source_parent):
+
+        # Apply search filter first
+        if not super().filterAcceptsRow(source_row, source_parent):
+            return False
+
+        # Apply favourites filter
         if not self._show_only_favourites:
             return True
+
         idx = self.sourceModel().index(source_row, 0, source_parent)
         return self.sourceModel().data(idx, PlaylistModel.FavRole) is True
 
@@ -249,10 +256,53 @@ class PlaylistDelegate(QStyledItemDelegate):
 
         text_rect = QRect(icon_rect.right() + 8, rect.top() + 4,
                           rect.width() - 80, rect.height() - 8)
-        text = index.data(Qt.DisplayRole)
-        opt = QTextOption()
-        opt.setWrapMode(QTextOption.WordWrap)
-        painter.drawText(text_rect, text, opt)
+        text = index.data(Qt.DisplayRole) or ""
+        search = self._get_search_text(index)
+
+        painter.setClipRect(text_rect)
+
+        if not search:
+            painter.drawText(text_rect, Qt.AlignVCenter | Qt.TextWordWrap, text)
+        else:
+            lower_text = text.lower()
+            lower_search = search.lower()
+
+            x = text_rect.left()
+            y = text_rect.top()
+
+            fm = painter.fontMetrics()
+
+            i = 0
+            while i < len(text):
+                match_index = lower_text.find(lower_search, i)
+
+                if match_index == -1:
+                    chunk = text[i:]
+                    painter.drawText(x, y + fm.ascent() + 2, chunk)
+                    break
+
+                # draw normal text before match
+                before = text[i:match_index]
+                painter.drawText(x, y + fm.ascent() + 2, before)
+                x += fm.horizontalAdvance(before)
+
+                # draw highlighted match
+                match = text[match_index:match_index + len(search)]
+
+                highlight_rect = QRect(
+                    x,
+                    y + 2,
+                    fm.horizontalAdvance(match),
+                    fm.height()
+                )
+
+                painter.fillRect(highlight_rect, option.palette.highlight())
+                painter.setPen(option.palette.highlightedText().color())
+                painter.drawText(x, y + fm.ascent() + 2, match)
+                painter.setPen(option.palette.text().color())
+
+                x += fm.horizontalAdvance(match)
+                i = match_index + len(search)
 
         painter.restore()
 
@@ -267,6 +317,15 @@ class PlaylistDelegate(QStyledItemDelegate):
                 return True
         return super().editorEvent(event, model, option, index)
 
+    # ---- Highlight search terms --------
+    def _get_search_text(self, index):
+        view = self.parent()
+        if not view:
+            return ""
+        proxy = view.model()
+        if not proxy:
+            return ""
+        return proxy.filterRegularExpression().pattern()
 
 # ------- Main Window -----------
 class M3UPlayer(QMainWindow):
@@ -309,6 +368,7 @@ class M3UPlayer(QMainWindow):
         self.list_view = QListView()
         self.list_view.setModel(self.proxy_model)
         self.list_view.doubleClicked.connect(self.play_selected)
+        self.search.textChanged.connect(self.list_view.viewport().update)
         self.list_view.setDragDropMode(QListView.InternalMove)
         self.list_view.setDefaultDropAction(Qt.MoveAction)
         self.list_view.setDropIndicatorShown(True)
@@ -514,7 +574,6 @@ class M3UPlayer(QMainWindow):
 
     def update_config(self):
         # --- update window size ------
-        # --- this removes comments ---
         cfgfile = open('config.txt', 'w')
         config.set("config", "app_height", str(self.height()))
         config.set("config", "app_width", str(self.width()))
@@ -534,7 +593,6 @@ class M3UPlayer(QMainWindow):
         self.update_config()
 
         super().closeEvent(event)
-
 
 # ---------- Entry Point ----------
 if __name__ == "__main__":
