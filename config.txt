@@ -1,51 +1,34 @@
-# ----------------------------------------
-# simple-iptv config for some basic stuff
-# ----------------------------------------
-
 [config]
 app_name = Simple IPTV
 # the name in the title bar
-
 app_icon = mdi.television-classic
-# the icon in the title bar using mdi icons, see https://pictogrammers.com/library/mdi/ 
-
+# the icon in the title bar using mdi icons, see https = //pictogrammers.com/library/mdi/
 app_icon_color = #292623
-# the icon color in the title bar, can be text or RGB
-
-app_height: 720
-app_width: 640
+# the icon color in the title bar, can be text or rgb
+app_height = 510
+app_width = 637
 # the size of the application window
-
 fullscreen = false
-# if True, overrides the app_height and app_width
-
+# if true, overrides the app_height and app_width
 playlist_icon = mdi.television-classic
 # icon used in the playlist
-
 app_theme = theme.xml
 # default is theme.xml, but you can add your own or use those from qt_material (see below for the full list)
-
 star_color = #bdf076
 star_empty_color = #777777
 # the colors of the favourites star icon
-
-row_height: 24
+row_height = 24
 # for the spacing between playlist items
-
 app_font = Century Gothic
 app_font_size = 13px
 # can be any font you have installed
-
 mpv_path = mpv.exe
-# the path to mpv.exe. the default is 'mpv.exe' where it's on PATH
-
+# the path to mpv.exe. the default is 'mpv.exe' where it's on path
 list_name = playlist.json
 # the filename used to save your playlist
 
-
-# ---------------------------------
+[themes]
 # alternate themes for app_theme
-# ---------------------------------
 # dark_amber.xml
 # dark_blue.xml
 # dark_cyan.xml
@@ -72,3 +55,4 @@ list_name = playlist.json
 # light_teal.xml
 # light_teal_500.xml
 # light_yellow.xml
+

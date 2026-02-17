@@ -9,7 +9,7 @@ It uses mpv.exe as the player, you just need to add the path to mpv.exe in confi
 Run with ```py simple-iptv.py``` or see Tips below if you just want a normal shortcut.
 
 Requires:
-- pip install pyside6 qtawesome configparser
+- pip install pyside6 qtawesome configparser requests
 - mpv.exe (just add in config.txt where it's installed)
 
 ### Theming
@@ -54,7 +54,7 @@ app_icon_color = #292623
 
 app_height: 560
 app_width: 800
-# the size of the application window
+# the size of the application window, modified when you resize in the app
 
 fullscreen = false
 # if True, overrides the app_height and app_width
