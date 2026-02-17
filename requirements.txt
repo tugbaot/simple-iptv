@@ -1,0 +1,6 @@
+pyside6
+pyside6_addons
+pyside6_essentials
+qt_material
+qtawesome
+Requests

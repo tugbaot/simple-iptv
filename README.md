@@ -9,7 +9,7 @@ It uses mpv.exe as the player, you just need to add the path to mpv.exe in confi
 Run with ```py simple-iptv.py``` or see Tips below if you just want a normal shortcut.
 
 Requires:
-- pip install pyside6 qtawesome configparser requests
+- pip install -r requirements.txt
 - mpv.exe (just add in config.txt where it's installed)
 
 ### Theming
