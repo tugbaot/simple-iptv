@@ -63,9 +63,8 @@ Features:
 • Search channels
 • Favourites (toggle view / star items)
 • Open local M3U
-• Load from URL (auto-detects Xtream codes)
+• Load from URL (auto-detects Xtream)
 • Save current playlist (all or favourites only)
-• Rename channels
 • Drag to reorder
 • Clear list
 
