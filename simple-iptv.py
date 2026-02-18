@@ -35,22 +35,22 @@ config = configparser.ConfigParser(comment_prefixes='/', allow_no_value=True)
 config.read('config.txt')
 
 # ------- Configuration -------------
-MPV_PATH     = config.get('config', 'mpv_path', fallback='mpv.exe')
-MPV_ARGS     = config.get('config', 'mpv_args', fallback='').strip().split()
-STATE_FILE   = config.get('config', 'list_name', fallback='playlist_state.json')
-APP_NAME     = config.get('config', 'app_name', fallback='Simple IPTV')
-APP_ICON     = config.get('config', 'app_icon', fallback='mdi.television')
-APP_ICON_COLOR = config.get('config', 'app_icon_color', fallback='white')
-PLAYLIST_ICON  = config.get('config', 'playlist_icon', fallback='mdi.television-guide')
-APP_THEME    = config.get('config', 'app_theme', fallback='dark_teal.xml')
-APP_FONT     = config.get('config', 'app_font', fallback='Segoe UI')
-APP_FONT_SIZE = config.get('config', 'app_font_size', fallback='9pt')
-STAR_COLOR   = config.get('config', 'star_color', fallback='#FFCA28')
+MPV_PATH         = config.get('config', 'mpv_path', fallback='mpv.exe')
+MPV_ARGS         = config.get('config', 'mpv_args', fallback='').strip().split()
+STATE_FILE       = config.get('config', 'list_name', fallback='playlist_state.json')
+APP_NAME         = config.get('config', 'app_name', fallback='Simple IPTV')
+APP_ICON         = config.get('config', 'app_icon', fallback='mdi.television')
+APP_ICON_COLOR   = config.get('config', 'app_icon_color', fallback='white')
+PLAYLIST_ICON    = config.get('config', 'playlist_icon', fallback='mdi.television-guide')
+APP_THEME        = config.get('config', 'app_theme', fallback='dark_teal.xml')
+APP_FONT         = config.get('config', 'app_font', fallback='Segoe UI')
+APP_FONT_SIZE    = config.get('config', 'app_font_size', fallback='9pt')
+STAR_COLOR       = config.get('themes', str(APP_THEME), fallback='#FFCA28')
 STAR_EMPTY_COLOR = config.get('config', 'star_empty_color', fallback='#757575')
-ROW_HEIGHT   = config.getint('config', 'row_height', fallback=38)
-APP_HEIGHT   = config.getint('config', 'app_height', fallback=600)
-APP_WIDTH    = config.getint('config', 'app_width', fallback=480)
-FULLSCREEN   = config.getboolean('config', 'fullscreen', fallback=False)
+ROW_HEIGHT       = config.getint('config', 'row_height', fallback=38)
+APP_HEIGHT       = config.getint('config', 'app_height', fallback=600)
+APP_WIDTH        = config.getint('config', 'app_width', fallback=480)
+FULLSCREEN       = config.getboolean('config', 'fullscreen', fallback=False)
 
 BUTTON_STYLE = (
     "text-align: left; padding-left: 12px; font-size: 8pt; "
@@ -393,7 +393,7 @@ class M3UPlayer(QMainWindow):
         btn_open    = self.make_button(" Open M3U", "mdi.folder-open", self.open_m3u)
         btn_url     = self.make_button(" Load URL", "mdi.link", self.load_url)
         btn_save    = self.make_button(" Save M3U", "mdi.content-save-outline", self.save_m3u)
-        btn_rename  = self.make_button(" Rename", "mdi.pencil", self.rename_item)
+        #btn_rename  = self.make_button(" Rename", "mdi.pencil", self.rename_item)
         btn_clear   = self.make_button(" Clear list", "mdi.delete-outline", self.clearlist)
         btn_play    = self.make_button(" Play", "mdi.play-circle", self.play_selected)
         btn_info    = self.make_button(" Info", "mdi.information", self.show_info)
@@ -404,7 +404,7 @@ class M3UPlayer(QMainWindow):
         controls.addWidget(btn_open)
         controls.addWidget(btn_url)
         controls.addWidget(btn_save)
-        controls.addWidget(btn_rename)
+        #controls.addWidget(btn_rename)
         controls.addWidget(btn_clear)
         controls.addStretch()
         controls.addWidget(btn_play)
@@ -473,8 +473,26 @@ class M3UPlayer(QMainWindow):
             QMessageBox.critical(self, "Error", str(e))
 
     def load_url(self):
-        url, ok = QInputDialog.getText(self, "Load URL", "Enter playlist / Xtream URL:")
-        if not ok or not (url := url.strip()):
+        dialog = QInputDialog(self)
+        dialog.setWindowTitle("Load URL")
+        dialog.setLabelText("Enter playlist URL:")
+        dialog.setOkButtonText("Load")
+        dialog.setCancelButtonText("Cancel")
+        dialog.resize(400, 120)
+
+        # Match app button styling
+        for btn in dialog.findChildren(QPushButton):
+            btn.setCursor(Qt.PointingHandCursor)
+            btn.setMinimumWidth(100)
+            btn.setIconSize(QSize(20, 20))
+            btn.setStyleSheet(
+                "text-align: left; padding-left: 12px; font-size: 8pt; "
+                "font-weight: normal; border-width: 1px;"
+            )
+
+        if dialog.exec():
+            url = dialog.textValue().strip()
+        else:
             return
 
         xtream = self._parse_xtream_url(url)

@@ -23,7 +23,6 @@ Pretty flexible to make it look how you want with a nice selection of inbuilt th
 - Open M3U: to open a m3u file
 - Load URL: to load an online m3u/XStream from an IPTV provider
 - Save M3U: to save the current playlist (all or favs only) as an m3u file
-- Rename: to rename a highlighted channel
 - Clear list: clear current channels
 - Play: or double click to play
 - Reorder the channels by dragging the TV icons

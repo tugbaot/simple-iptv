@@ -5,8 +5,8 @@ app_icon = mdi.television-classic
 # the icon in the title bar using mdi icons, see https = //pictogrammers.com/library/mdi/
 app_icon_color = #292623
 # the icon color in the title bar, can be text or rgb
-app_height = 510
-app_width = 637
+app_height = 541
+app_width = 878
 # the size of the application window
 fullscreen = false
 # if true, overrides the app_height and app_width
@@ -14,9 +14,8 @@ playlist_icon = mdi.television-classic
 # icon used in the playlist
 app_theme = theme.xml
 # default is theme.xml, but you can add your own or use those from qt_material (see below for the full list)
-star_color = #bdf076
 star_empty_color = #777777
-# the colors of the favourites star icon
+# the color of the empty favourites star icon
 row_height = 24
 # for the spacing between playlist items
 app_font = Century Gothic
@@ -28,31 +27,33 @@ list_name = playlist.json
 # the filename used to save your playlist
 
 [themes]
-# alternate themes for app_theme
-# dark_amber.xml
-# dark_blue.xml
-# dark_cyan.xml
-# dark_lightgreen.xml
-# dark_pink.xml
-# dark_purple.xml
-# dark_red.xml
-# dark_teal.xml
-# dark_yellow.xml
-# light_amber.xml
-# light_blue.xml
-# light_blue_500.xml
-# light_cyan.xml
-# light_cyan_500.xml
-# light_lightgreen.xml
-# light_lightgreen_500.xml
-# light_orange.xml
-# light_pink.xml
-# light_pink_500.xml
-# light_purple.xml
-# light_purple_500.xml
-# light_red.xml
-# light_red_500.xml
-# light_teal.xml
-# light_teal_500.xml
-# light_yellow.xml
+# alternate themes ###################
+# associated color is for the fav star
+theme.xml = #FFF0F8
+dark_amber.xml = #ffd740
+dark_blue.xml = #448aff
+dark_cyan.xml = #4dd0e1
+dark_lightgreen.xml = #8bc34a
+dark_pink.xml = #ff4081
+dark_purple.xml = #ab47bc
+dark_red.xml = #ff1744
+dark_teal.xml = #1de9b6
+dark_yellow.xml = #ffff00
+light_amber.xml = #ffc400
+light_blue.xml = #2979ff
+light_blue_500.xml = #03a9f4
+light_cyan.xml = #00e5ff
+light_cyan_500.xml = #00bcd4
+light_lightgreen.xml = #64dd17
+light_lightgreen_500.xml = #8bc34a
+light_orange.xml = #ff3d00
+light_pink.xml = #ff4081
+light_pink_500.xml = #e91e63
+light_purple.xml = #e040fb
+light_purple_500.xml = #9c27b0
+light_red.xml = #ff1744
+light_red_500.xml = #f44336
+light_teal.xml = #1de9b6
+light_teal_500.xml = #009688
+light_yellow.xml = #ffea00
 
