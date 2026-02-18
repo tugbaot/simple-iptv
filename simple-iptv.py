@@ -1,7 +1,14 @@
 #!/usr/bin/python
 # Created: 02/02/2026 
 # Simple IPTV thing
-# ##########################################
+# github.com/tugbaot/simple-iptv
+# -----------------------------------------------
+# TO DO
+# change theme in app
+# -----------------------------------------------
+# LATEST CHANGE
+# Got rid of play button, seems pointless
+# -----------------------------------------------
 
 import sys
 import os
@@ -24,17 +31,17 @@ from PySide6.QtGui import QIcon, QPainter, QTextOption
 from qt_material import apply_stylesheet
 import qtawesome as qta
 
-# ------- Use script path -----------
+# ------- Use script path -----------------------
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
 
-# ------- Read config ---------------
-# specifies comment_prefixes to trick it into leaving # comments in the file
+# ------- Read config ---------------------------
+# specifies fake comment_prefixes to trick it into leaving # comments in the file
 config = configparser.ConfigParser(comment_prefixes='/', allow_no_value=True)
 config.read('config.txt')
 
-# ------- Configuration -------------
+# ------- Configuration -------------------------
 MPV_PATH         = config.get('config', 'mpv_path', fallback='mpv.exe')
 MPV_ARGS         = config.get('config', 'mpv_args', fallback='').strip().split()
 STATE_FILE       = config.get('config', 'list_name', fallback='playlist_state.json')
@@ -53,7 +60,7 @@ APP_WIDTH        = config.getint('config', 'app_width', fallback=480)
 FULLSCREEN       = config.getboolean('config', 'fullscreen', fallback=False)
 
 BUTTON_STYLE = (
-    "text-align: left; padding-left: 12px; font-size: 8pt; "
+    "text-align: left; padding-left: 4px; font-size: 8pt; "
     "font-weight: normal; border-width: 1px;"
 )
 
@@ -64,14 +71,15 @@ Features:
 • Favourites (toggle view / star items)
 • Open local M3U
 • Load from URL (auto-detects Xtream)
-• Save current playlist (all or favourites only)
+• Save m3u playlist (all or favourites only)
+• Save json (playlist and favs)
 • Drag to reorder
 • Clear list
 
 Customize via config.txt and theme.xml
 🌐 https://github.com/tugbaot/simple-iptv"""
 
-# ------- Custom Model -----------
+# ------- Custom Model --------------------------
 class PlaylistModel(QAbstractListModel):
     NameRole = Qt.UserRole + 1
     UrlRole  = Qt.UserRole + 2
@@ -220,7 +228,7 @@ class FavouriteFilterProxy(QSortFilterProxyModel):
         return self.sourceModel().data(idx, PlaylistModel.FavRole) is True
 
 
-# ------- Custom Delegate -----------
+# ------- Custom Delegate -----------------------
 class PlaylistDelegate(QStyledItemDelegate):
     def __init__(self, height, icon, parent=None):
         super().__init__(parent)
@@ -326,7 +334,7 @@ class PlaylistDelegate(QStyledItemDelegate):
             return ""
         return proxy.filterRegularExpression().pattern()
 
-# ------- Main Window -----------
+# ------- Main Window ---------------------------
 class M3UPlayer(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -391,10 +399,11 @@ class M3UPlayer(QMainWindow):
         self.btn_fav = self.make_button(" Favourites", "mdi.star-outline", self.toggle_favourites)
         btn_open    = self.make_button(" Open M3U", "mdi.folder-open", self.open_m3u)
         btn_url     = self.make_button(" Load URL", "mdi.link", self.load_url)
-        btn_save    = self.make_button(" Save M3U", "mdi.content-save-outline", self.save_m3u)
+        btn_savem3u    = self.make_button(" Save M3U", "mdi.content-save-outline", self.save_m3u)
+        btn_savejson   = self.make_button(" Save json", "mdi.code-json", self.save_json)
         #btn_rename  = self.make_button(" Rename", "mdi.pencil", self.rename_item)
         btn_clear   = self.make_button(" Clear list", "mdi.delete-outline", self.clearlist)
-        btn_play    = self.make_button(" Play", "mdi.play-circle", self.play_selected)
+        # btn_play    = self.make_button(" Play", "mdi.play-circle", self.play_selected)
         btn_info    = self.make_button(" Info", "mdi.information", self.show_info)
         btn_quit    = self.make_button(" Quit", "mdi.exit-to-app", self.close)
 
@@ -402,13 +411,27 @@ class M3UPlayer(QMainWindow):
         controls.addWidget(self.btn_fav)
         controls.addWidget(btn_open)
         controls.addWidget(btn_url)
-        controls.addWidget(btn_save)
-        #controls.addWidget(btn_rename)
+        controls.addWidget(btn_savem3u)
+        controls.addWidget(btn_savejson)
+        # controls.addWidget(btn_rename)
         controls.addWidget(btn_clear)
         controls.addStretch()
-        controls.addWidget(btn_play)
-        controls.addWidget(btn_info)
-        controls.addWidget(btn_quit)
+        # controls.addWidget(btn_play)
+
+        # Bottom row: Info + Quit side by side, smaller
+        bottom_row = QHBoxLayout()
+        bottom_row.setSpacing(4)
+
+        btn_info.setMinimumWidth(40) 
+        btn_info.setMaximumWidth(120)
+        
+        btn_quit.setMinimumWidth(40)
+        btn_quit.setMaximumWidth(120)
+        btn_quit.setIconSize(QSize(18, 18))
+        bottom_row.addWidget(btn_info)
+        bottom_row.addWidget(btn_quit)
+
+        controls.addLayout(bottom_row)
 
         main.addLayout(controls)
 
@@ -540,7 +563,22 @@ class M3UPlayer(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))
 
+    def save_json(self):
+        path, _ = QFileDialog.getSaveFileName(self, "Save json file", "playlist.json", "json files (*.json)")
+        if not path:
+            return
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump({
+                    "playlist": self.model.get_playlist_copy(),
+                    "show_favourites": self.show_favourites,
+                }, f, indent=2)
+            self.statusBar.showMessage("json saved", 3000)
+        except Exception as e:
+            QMessageBox.critical(self, "Error", str(e))
+
     def rename_item(self):
+        # --- not being used at the mo ---------------------------------
         idx = self.list_view.currentIndex()
         if not idx.isValid():
             return
@@ -611,7 +649,7 @@ class M3UPlayer(QMainWindow):
 
         super().closeEvent(event)
 
-# ---------- Entry Point ----------
+# ---------- Entry Point ------------------------
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     apply_stylesheet(
