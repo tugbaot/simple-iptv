@@ -58,7 +58,7 @@ fullscreen = false
 # if true, overrides the app_height and app_width
 playlist_icon = mdi.television-classic
 # icon used in the playlist
-app_theme = dark_teal.xml
+app_theme = theme.xml
 # default is theme.xml, but you can add your own or use those from qt_material (see below for the full list)
 star_empty_color = #777777
 # the color of the empty favourites star icon
@@ -74,7 +74,7 @@ list_name = playlist.json
 
 [themes]
 # alternate themes ###################
-# associated color is for the fav star
+# associated color is for the fav star which is applied based on your theme choice
 theme.xml = #bd95b8
 dark_amber.xml = #ffd740
 dark_blue.xml = #448aff
