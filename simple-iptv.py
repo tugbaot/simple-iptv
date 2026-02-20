@@ -5,9 +5,7 @@
 # -----------------------------------------------
 # TO DO
 # change theme in app
-# -----------------------------------------------
-# LATEST CHANGE
-# Got rid of play button, seems pointless
+# does it need 'clear list'? 
 # -----------------------------------------------
 
 import sys
@@ -42,7 +40,7 @@ config = configparser.ConfigParser(comment_prefixes='/', allow_no_value=True)
 config.read('config.txt')
 
 # ------- Configuration -------------------------
-MPV_PATH         = config.get('config', 'mpv_path', fallback='mpv.exe')
+MPV_PATH         = config.get('config', 'mpv_path', fallback='mpv.exe') 
 MPV_ARGS         = config.get('config', 'mpv_args', fallback='').strip().split()
 STATE_FILE       = config.get('config', 'list_name', fallback='playlist_state.json')
 APP_NAME         = config.get('config', 'app_name', fallback='Simple IPTV')
@@ -324,7 +322,7 @@ class PlaylistDelegate(QStyledItemDelegate):
                 return True
         return super().editorEvent(event, model, option, index)
 
-    # ---- Highlight search terms --------
+    # ---- Highlight search terms ---------------
     def _get_search_text(self, index):
         view = self.parent()
         if not view:
@@ -401,9 +399,7 @@ class M3UPlayer(QMainWindow):
         btn_url     = self.make_button(" Load URL", "mdi.link", self.load_url)
         btn_savem3u    = self.make_button(" Save M3U", "mdi.content-save-outline", self.save_m3u)
         btn_savejson   = self.make_button(" Save json", "mdi.code-json", self.save_json)
-        #btn_rename  = self.make_button(" Rename", "mdi.pencil", self.rename_item)
         btn_clear   = self.make_button(" Clear list", "mdi.delete-outline", self.clearlist)
-        # btn_play    = self.make_button(" Play", "mdi.play-circle", self.play_selected)
         btn_info    = self.make_button(" Info", "mdi.information", self.show_info)
         btn_quit    = self.make_button(" Quit", "mdi.exit-to-app", self.close)
 
@@ -413,10 +409,8 @@ class M3UPlayer(QMainWindow):
         controls.addWidget(btn_url)
         controls.addWidget(btn_savem3u)
         controls.addWidget(btn_savejson)
-        # controls.addWidget(btn_rename)
         controls.addWidget(btn_clear)
         controls.addStretch()
-        # controls.addWidget(btn_play)
 
         # Bottom row: Info + Quit side by side, smaller
         bottom_row = QHBoxLayout()
@@ -577,17 +571,6 @@ class M3UPlayer(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))
 
-    def rename_item(self):
-        # --- not being used at the mo ---------------------------------
-        idx = self.list_view.currentIndex()
-        if not idx.isValid():
-            return
-        src_idx = self.proxy_model.mapToSource(idx)
-        name = self.model.data(src_idx, PlaylistModel.NameRole)
-        new_name, ok = QInputDialog.getText(self, "Rename", "New name:", text=name)
-        if ok and new_name.strip():
-            self.model.setData(src_idx, new_name.strip(), PlaylistModel.NameRole)
-
     def clearlist(self):
         if QMessageBox.question(self, "Clear", "Remove all channels?") == QMessageBox.Yes:
             self.model.clear()
@@ -600,7 +583,11 @@ class M3UPlayer(QMainWindow):
         src_idx = self.proxy_model.mapToSource(idx)
         url = self.model.data(src_idx, PlaylistModel.UrlRole)
         try:
-            subprocess.Popen([MPV_PATH, *MPV_ARGS, url])
+            if os.name == "nt":
+                subprocess.Popen([MPV_PATH, *MPV_ARGS, url])
+            else:
+                subprocess.Popen(["mpv", *MPV_ARGS, url])
+
         except FileNotFoundError:
             QMessageBox.critical(self, "mpv not found", f"Check MPV_PATH\nCurrently: {MPV_PATH}")
 

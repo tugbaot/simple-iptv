@@ -5,14 +5,14 @@ app_icon = mdi.television-classic
 # the icon in the title bar using mdi icons, see https = //pictogrammers.com/library/mdi/
 app_icon_color = #292623
 # the icon color in the title bar, can be text or rgb
-app_height = 541
-app_width = 878
+app_height = 533
+app_width = 870
 # the size of the application window
 fullscreen = false
 # if true, overrides the app_height and app_width
 playlist_icon = mdi.television-classic
 # icon used in the playlist
-app_theme = theme.xml
+app_theme = dark_teal.xml
 # default is theme.xml, but you can add your own or use those from qt_material (see below for the full list)
 star_empty_color = #777777
 # the color of the empty favourites star icon
@@ -23,13 +23,14 @@ app_font_size = 13px
 # can be any font you have installed
 mpv_path = mpv.exe
 # the path to mpv.exe. the default is 'mpv.exe' where it's on path
+# for linux you can ignore this, linux will find mpv
 list_name = playlist.json
 # the filename used to save your playlist
 
 [themes]
 # alternate themes ###################
 # associated color is for the fav star
-theme.xml = #FFF0F8
+theme.xml = #bd95b8
 dark_amber.xml = #ffd740
 dark_blue.xml = #448aff
 dark_cyan.xml = #4dd0e1

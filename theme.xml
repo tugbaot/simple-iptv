@@ -11,7 +11,7 @@
   <!-- the background color of the main window-->
   <color name="secondaryDarkColor">#31363b</color>
   <!-- the background color of the playlist, with transparency -->
-  <color name="secondaryColor">#31363b</color>
+  <color name="secondaryColor">#232629</color>
   <!-- tooltip background -->
   <color name="secondaryLightColor">#5a5b61</color>
 </resources>
