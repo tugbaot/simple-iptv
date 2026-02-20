@@ -1,5 +1,7 @@
 # simple-iptv
-A lightweight & customisable IPTV manager using mpv.exe to play iptv channels. I  created this as I wanted something simple and quick to just launch some TV. Works on Windows and Linux.
+A lightweight & customisable IPTV manager using MPV to play iptv channels for Windows and Linux.
+
+I created this as I wanted something simple and quick to just launch some TV.
 ![simple-iptv screenshot](https://github.com/tugbaot/simple-iptv/blob/main/screenshots/screenshot.png)
 
 ### Install
@@ -9,13 +11,18 @@ It uses mpv as the player, so you need to have this installed:
 - Linux: just install `sudo apt install mpv` and the app will find it
 
 Also requires:
-- pip install -r requirements.txt
+- `pip install -r requirements.txt`
 
-Run with ```python3 simple-iptv.py``` or see Tips below if you just want a normal shortcut.
+Run with `python3 simple-iptv.py` or see Tips below if you just want a normal shortcut.
 
 ### Theming
 
-Pretty flexible to make it look how you want with a nice selection of inbuilt themes.
+Pretty flexible so you can make it look how you want with a nice selection of inbuilt themes you can use or create your own.
+
+You can change many things, see:
+- config.txt for various changes to the look & layout
+- theme.xml for the colorscheme
+
 ![themese](https://github.com/tugbaot/simple-iptv/blob/main/screenshots/themes.png)
 
 ### Basic features
@@ -28,10 +35,6 @@ Pretty flexible to make it look how you want with a nice selection of inbuilt th
 - Clear list: clear current channels
 - Double click to play
 - Reorder the channels by dragging the TV icons
-
-You can change many things, see:
-- config.txt for various changes to the look & layout
-- theme.xml for the colorscheme
 
 ### Tips
 - If you don't want to run from the command line:
