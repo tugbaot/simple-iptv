@@ -53,6 +53,8 @@ app_width = 870
 # the size of the application window
 fullscreen = false
 # if true, overrides the app_height and app_width
+minimise = True
+# whether the app minimises after play starts
 playlist_icon = mdi.television-classic
 # icon used in the playlist
 app_theme = dark_teal.xml

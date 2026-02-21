@@ -5,6 +5,7 @@
 # -----------------------------------------------
 # TO DO
 # change theme in app
+# optional minimise
 # does it need 'clear list'? 
 # -----------------------------------------------
 
@@ -56,6 +57,7 @@ ROW_HEIGHT       = config.getint('config', 'row_height', fallback=38)
 APP_HEIGHT       = config.getint('config', 'app_height', fallback=600)
 APP_WIDTH        = config.getint('config', 'app_width', fallback=480)
 FULLSCREEN       = config.getboolean('config', 'fullscreen', fallback=False)
+MINIMISE         = config.getboolean('config', 'minimise', fallback=False)
 
 BUTTON_STYLE = (
     "text-align: left; padding-left: 4px; font-size: 8pt; "
@@ -587,6 +589,8 @@ class M3UPlayer(QMainWindow):
                 subprocess.Popen([MPV_PATH, *MPV_ARGS, url])
             else:
                 subprocess.Popen(["mpv", *MPV_ARGS, url])
+            if MINIMISE is True:
+                self.showMinimized()
 
         except FileNotFoundError:
             QMessageBox.critical(self, "mpv not found", f"Check MPV_PATH\nCurrently: {MPV_PATH}")
