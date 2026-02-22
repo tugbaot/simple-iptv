@@ -5,8 +5,8 @@ app_icon = mdi.television-classic
 # the icon in the title bar using mdi icons, see https = //pictogrammers.com/library/mdi/
 app_icon_color = #292623
 # the icon color in the title bar, can be text or rgb
-app_height = 793
-app_width = 1536
+app_height = 490
+app_width = 658
 # the size of the application window
 fullscreen = False
 # if true, overrides the app_height and app_width
@@ -27,6 +27,13 @@ mpv_path = mpv.exe
 # the path to mpv.exe. the default is 'mpv.exe' where it's on path
 list_name = playlist.json
 # the filename used to save your playlist
+
+[xtream]
+iptv_name = TEST IPTV
+iptv_url = http://test.iptv
+iptv_user = test
+iptv_pass = test
+# your iptv login info
 
 [themes]
 # alternate themes ###################

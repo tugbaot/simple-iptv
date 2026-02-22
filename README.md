@@ -31,6 +31,7 @@ You can change many things, see:
 - Open M3U: to open a m3u file
 - Load URL: to load an online m3u/XStream from an IPTV provider
 - Save M3U: to save the current playlist (all or favs only) as an m3u file
+- Xtream: Load from your Xtream IPTV provider
 - Save json: saves the full state, all channels and favourites.
 - Clear list: clear current channels
 - Double click to play
@@ -73,6 +74,13 @@ mpv_path = mpv.exe
 # the path to mpv.exe. the default is 'mpv.exe' where it's on path
 list_name = playlist.json
 # the filename used to save your playlist
+
+[xtream]
+iptv_name = TEST IPTV
+iptv_url = http://test.iptv
+iptv_user = test
+iptv_pass = test
+# your iptv login info
 
 [themes]
 # alternate themes ###################

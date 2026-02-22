@@ -4,9 +4,7 @@
 # github.com/tugbaot/simple-iptv
 # -----------------------------------------------
 # TO DO
-# change theme in app
-# optional minimise
-# does it need 'clear list'? 
+# Xtream - get from user input not config?
 # -----------------------------------------------
 
 import sys
@@ -17,12 +15,14 @@ import configparser
 import requests
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
+from fake_useragent import UserAgent
+from pyxtream import XTream
 
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QFileDialog,
     QVBoxLayout, QHBoxLayout, QInputDialog, QMessageBox,
     QLineEdit, QListView, QStyledItemDelegate, QAbstractItemView,
-    QStatusBar, QStyle
+    QStatusBar, QStyle, QDialog, QFormLayout, QDialogButtonBox
 )
 from PySide6.QtCore import Qt, QSize, QSortFilterProxyModel, QRect, QEvent, QModelIndex, QAbstractListModel, QMimeData, QByteArray, QDataStream, QIODevice
 from PySide6.QtGui import QIcon, QPainter, QTextOption
@@ -59,11 +59,19 @@ APP_WIDTH        = config.getint('config', 'app_width', fallback=480)
 FULLSCREEN       = config.getboolean('config', 'fullscreen', fallback=False)
 MINIMISE         = config.getboolean('config', 'minimise', fallback=False)
 
+# ------- Xtream config (move out) --------------
+IPTV_NAME        = config.get('xtream', 'IPTV_NAME')
+IPTV_URL         = config.get('xtream', 'IPTV_URL')
+IPTV_USER        = config.get('xtream', 'IPTV_USER')
+IPTV_PASS        = config.get('xtream', 'IPTV_PASS')
+
+# ------- Button style --------------------------
 BUTTON_STYLE = (
     "text-align: left; padding-left: 4px; font-size: 8pt; "
     "font-weight: normal; border-width: 1px;"
 )
 
+# ------- Info popup ----------------------------
 INFO = """A simple, lightweight IPTV manager using mpv to play channels.
 
 Features:
@@ -395,20 +403,22 @@ class M3UPlayer(QMainWindow):
         controls = QVBoxLayout()
         controls.setSpacing(8)
 
-        btn_search  = self.make_button(" Search", "mdi.magnify", self.toggle_search)
-        self.btn_fav = self.make_button(" Favourites", "mdi.star-outline", self.toggle_favourites)
-        btn_open    = self.make_button(" Open M3U", "mdi.folder-open", self.open_m3u)
-        btn_url     = self.make_button(" Load URL", "mdi.link", self.load_url)
-        btn_savem3u    = self.make_button(" Save M3U", "mdi.content-save-outline", self.save_m3u)
-        btn_savejson   = self.make_button(" Save json", "mdi.code-json", self.save_json)
-        btn_clear   = self.make_button(" Clear list", "mdi.delete-outline", self.clearlist)
-        btn_info    = self.make_button(" Info", "mdi.information", self.show_info)
-        btn_quit    = self.make_button(" Quit", "mdi.exit-to-app", self.close)
+        btn_search    = self.make_button(" Search", "mdi.magnify", self.toggle_search)
+        self.btn_fav  = self.make_button(" Favourites", "mdi.star-outline", self.toggle_favourites)
+        btn_open      = self.make_button(" Open M3U", "mdi.folder-open", self.open_m3u)
+        btn_url       = self.make_button(" M3U URL", "mdi.link", self.load_m3u)
+        btn_xtream    = self.make_button(" Xtreme", "mdi.television", self.get_xtream)
+        btn_savem3u   = self.make_button(" Save M3U", "mdi.content-save-outline", self.save_m3u)
+        btn_savejson  = self.make_button(" Save json", "mdi.code-json", self.save_json)
+        btn_clear     = self.make_button(" Clear list", "mdi.delete-outline", self.clearlist)
+        btn_info      = self.make_button(" Info", "mdi.information", self.show_info)
+        btn_quit      = self.make_button(" Quit", "mdi.exit-to-app", self.close)
 
         controls.addWidget(btn_search)
         controls.addWidget(self.btn_fav)
         controls.addWidget(btn_open)
         controls.addWidget(btn_url)
+        controls.addWidget(btn_xtream)
         controls.addWidget(btn_savem3u)
         controls.addWidget(btn_savejson)
         controls.addWidget(btn_clear)
@@ -490,9 +500,9 @@ class M3UPlayer(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))
 
-    def load_url(self):
+    def load_m3u(self):
         dialog = QInputDialog(self)
-        dialog.setWindowTitle("Load URL")
+        dialog.setWindowTitle("Load M3U URL")
         dialog.setLabelText("Enter playlist URL:")
         dialog.setOkButtonText("Load")
         dialog.setCancelButtonText("Cancel")
@@ -513,37 +523,84 @@ class M3UPlayer(QMainWindow):
         else:
             return
 
-        xtream = self._parse_xtream_url(url)
-        if xtream:
-            url = f"{xtream['server']}/get.php?username={xtream['username']}&password={xtream['password']}&type=m3u_plus&output=ts"
-
         try:
+            self.statusBar.showMessage(f"Loading, please wait...", 4000)
             r = requests.get(url, timeout=15)
             r.raise_for_status()
             items = self._parse_m3u_content(r.text.splitlines())
             self.model.clear()
             self.model.append_items(items)
             self.statusBar.showMessage(f"Loaded {len(items)} channels from URL", 4000)
-            if xtream:
-                self.xtream_config = xtream
+            #if xtream:
+            #    self.xtream_config = xtream
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Could not load:\n{e}")
 
-    def _parse_xtream_url(self, url: str) -> dict | None:
-        try:
-            if "get.php" not in url:
-                return None
-            parsed = urlparse(url)
-            qs = parse_qs(parsed.query)
-            if "username" not in qs or "password" not in qs:
-                return None
-            return {
-                "server": f"{parsed.scheme}://{parsed.netloc}".rstrip("/"),
-                "username": qs["username"][0],
-                "password": qs["password"][0]
-            }
-        except Exception:
-            return None
+    def get_xtream(self):
+        global IPTV_NAME 
+        global IPTV_URL 
+        global IPTV_USER
+        global IPTV_PASS
+
+        if QMessageBox.question(self, "Load Xtream IPTV", "This will remove all current channels and favs, and reload from your IPTV provider. \n\nProvider: " + IPTV_NAME +
+        "\nURL: " + IPTV_URL +
+        "\nUsername: " + IPTV_USER +
+        "\nPassword: ************"
+        ) == QMessageBox.Yes:
+
+            try:
+                self.statusBar.showMessage("Connecting to Xtream…", 3000)
+
+                xt = XTream(IPTV_NAME, IPTV_USER, IPTV_PASS, IPTV_URL)
+                print(xt)
+
+                xt.authenticate()
+
+                if not xt.authorization:
+                    QMessageBox.critical(self, "Xtream Error", "Login failed.")
+                    return
+
+                xt.load_iptv()
+                print(vars(xt.channels[0]))
+
+                if xt.channels:
+                    ch = xt.channels[0]
+                    print("Type:", type(ch))
+                    print("Attrs:", vars(ch))
+
+                items = []
+
+                for ch in xt.channels:
+                    try:
+                        name = getattr(ch, "name", None)
+
+                        stream_id = (
+                            getattr(ch, "stream_id", None)
+                            or getattr(ch, "streamId", None)
+                            or getattr(ch, "id", None)
+                        )
+
+                        if not name or not stream_id:
+                            continue
+
+                        url = f"{IPTV_URL}/live/{IPTV_USER}/{IPTV_PASS}/{stream_id}.ts"
+
+                        items.append([name, url, False])
+
+                    except Exception as e:
+                        print("Skipped:", e)
+
+                if not items:
+                    QMessageBox.warning(self, "Xtream", "No channels found.")
+                    return
+
+                self.model.clear()
+                self.model.append_items(items)
+
+                QMessageBox.information(self, "Complete", "Xtream channels loaded.")
+
+            except Exception as e:
+                QMessageBox.critical(self, "Xtream Error", str(e))
 
     def save_m3u(self):
         path, _ = QFileDialog.getSaveFileName(self, "Save playlist", "playlist.m3u", "M3U Files (*.m3u)")
@@ -589,7 +646,7 @@ class M3UPlayer(QMainWindow):
                 subprocess.Popen([MPV_PATH, *MPV_ARGS, url])
             else:
                 subprocess.Popen(["mpv", *MPV_ARGS, url])
-            if MINIMISE is True:
+            if MINIMISE:
                 self.showMinimized()
 
         except FileNotFoundError:

@@ -4,3 +4,4 @@ pyside6_essentials
 qt_material
 qtawesome
 Requests
+pyxtream
