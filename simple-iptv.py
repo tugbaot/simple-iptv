@@ -78,7 +78,7 @@ Features:
 • Search channels
 • Favourites (toggle view / star items)
 • Open local M3U
-• Load from URL (auto-detects Xtream)
+• Load from URL (m3u or Xstream)
 • Save m3u playlist (all or favourites only)
 • Save json (playlist and favs)
 • Drag to reorder
@@ -234,7 +234,6 @@ class FavouriteFilterProxy(QSortFilterProxyModel):
 
         idx = self.sourceModel().index(source_row, 0, source_parent)
         return self.sourceModel().data(idx, PlaylistModel.FavRole) is True
-
 
 # ------- Custom Delegate -----------------------
 class PlaylistDelegate(QStyledItemDelegate):
@@ -542,12 +541,31 @@ class M3UPlayer(QMainWindow):
         global IPTV_USER
         global IPTV_PASS
 
-        if QMessageBox.question(self, "Load Xtream IPTV", "This will remove all current channels and favs, and reload from your IPTV provider. \n\nProvider: " + IPTV_NAME +
+        msg = QMessageBox(self)
+        msg.setWindowTitle("Load IPTV Xtream")
+        msg.setText("This will remove all current channels and favs, and reload from your IPTV provider. \n\nProvider: " + IPTV_NAME +
         "\nURL: " + IPTV_URL +
         "\nUsername: " + IPTV_USER +
         "\nPassword: ************"
-        ) == QMessageBox.Yes:
+        )
+        msg.setIcon(QMessageBox.Icon.Question)
 
+        msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        msg.setDefaultButton(QMessageBox.StandardButton.No)
+
+        for btn in msg.findChildren(QPushButton):
+            btn.setCursor(Qt.PointingHandCursor)
+            btn.setMinimumWidth(100)
+            btn.setIconSize(QSize(20, 20))
+            btn.setStyleSheet(BUTTON_STYLE)
+            if "Yes" in btn.text():
+                btn.setIcon(qta.icon("mdi.check-circle-outline"))
+            if "No" in btn.text():
+                btn.setIcon(qta.icon("mdi.close-circle-outline"))
+
+        reply = msg.show()
+
+        if reply == QMessageBox.Yes:
             try:
                 self.statusBar.showMessage("Connecting to Xtream…", 3000)
 
@@ -631,9 +649,31 @@ class M3UPlayer(QMainWindow):
             QMessageBox.critical(self, "Error", str(e))
 
     def clearlist(self):
-        if QMessageBox.question(self, "Clear", "Remove all channels?") == QMessageBox.Yes:
+        msg = QMessageBox(self)
+        msg.setWindowTitle("Clear")
+        msg.setText("Are you sure you want to clear the list?")
+        msg.setIcon(QMessageBox.Icon.Question)
+
+        msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        msg.setDefaultButton(QMessageBox.StandardButton.No)
+
+        for btn in msg.findChildren(QPushButton):
+            btn.setCursor(Qt.PointingHandCursor)
+            btn.setMinimumWidth(100)
+            btn.setIconSize(QSize(20, 20))
+            btn.setStyleSheet(BUTTON_STYLE)
+            if "Yes" in btn.text():
+                btn.setIcon(qta.icon("mdi.check-circle-outline"))
+            if "No" in btn.text():
+                btn.setIcon(qta.icon("mdi.close-circle-outline"))
+
+        reply = msg.show()
+
+        if reply == QMessageBox.Yes:
             self.model.clear()
             self.statusBar.showMessage("List cleared", 3000)
+        else:
+            print("No clicked")
 
     def play_selected(self):
         idx = self.list_view.currentIndex()
@@ -653,7 +693,20 @@ class M3UPlayer(QMainWindow):
             QMessageBox.critical(self, "mpv not found", f"Check MPV_PATH\nCurrently: {MPV_PATH}")
 
     def show_info(self):
-        QMessageBox.about(self, "Info", INFO)
+        msg = QMessageBox(self)
+        msg.setWindowTitle("Info")
+        msg.setText(INFO)
+        msg.setStyleSheet(BUTTON_STYLE)
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+
+        for btn in msg.findChildren(QPushButton):
+            btn.setCursor(Qt.PointingHandCursor)
+            btn.setMinimumWidth(100)
+            btn.setIconSize(QSize(20, 20))
+            btn.setStyleSheet(BUTTON_STYLE)
+            btn.setIcon(qta.icon("mdi.check-circle-outline"))
+
+        msg.show()
 
     def load_state(self):
         path = Path(STATE_FILE)
