@@ -13,6 +13,8 @@ import json
 import subprocess
 import configparser
 import requests
+import random
+from time import sleep
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 from fake_useragent import UserAgent
@@ -49,6 +51,7 @@ APP_ICON         = config.get('config', 'app_icon', fallback='mdi.television')
 APP_ICON_COLOR   = config.get('config', 'app_icon_color', fallback='white')
 PLAYLIST_ICON    = config.get('config', 'playlist_icon', fallback='mdi.television-guide')
 APP_THEME        = config.get('config', 'app_theme', fallback='dark_teal.xml')
+RANDOM_THEME     = config.getboolean('config', 'random_theme', fallback=False)
 APP_FONT         = config.get('config', 'app_font', fallback='Segoe UI')
 APP_FONT_SIZE    = config.get('config', 'app_font_size', fallback='9pt')
 STAR_COLOR       = config.get('themes', str(APP_THEME), fallback='#FFCA28')
@@ -59,7 +62,24 @@ APP_WIDTH        = config.getint('config', 'app_width', fallback=480)
 FULLSCREEN       = config.getboolean('config', 'fullscreen', fallback=False)
 MINIMISE         = config.getboolean('config', 'minimise', fallback=False)
 
-# ------- Xtream config (move out) --------------
+# ------- Random theme --------------------------
+thm = {
+        '1': "theme.xml",
+        '2': "dark_amber.xml",
+        '3': "dark_blue.xml",
+        '4': "dark_cyan.xml",
+        '5': "dark_lightgreen.xml",
+        '6': "dark_pink.xml",
+        '7': "dark_purple.xml",
+        '8': "dark_red.xml",
+        '9': "dark_teal.xml",
+        '10': "dark_yellow.xml"
+        }
+if RANDOM_THEME:
+    APP_THEME = random.choice(list(thm.values()))
+    STAR_COLOR = config.get('themes', str(APP_THEME), fallback='#FFCA28')
+
+# ------- Xtream config -------------------------
 IPTV_NAME        = config.get('xtream', 'IPTV_NAME')
 IPTV_URL         = config.get('xtream', 'IPTV_URL')
 IPTV_USER        = config.get('xtream', 'IPTV_USER')
@@ -687,6 +707,7 @@ class M3UPlayer(QMainWindow):
             else:
                 subprocess.Popen(["mpv", *MPV_ARGS, url])
             if MINIMISE:
+                sleep(5)
                 self.showMinimized()
 
         except FileNotFoundError:
@@ -696,9 +717,7 @@ class M3UPlayer(QMainWindow):
         msg = QMessageBox(self)
         msg.setWindowTitle("Info")
         msg.setText(INFO)
-        msg.setStyleSheet(BUTTON_STYLE)
         msg.setStandardButtons(QMessageBox.StandardButton.Ok)
-
         for btn in msg.findChildren(QPushButton):
             btn.setCursor(Qt.PointingHandCursor)
             btn.setMinimumWidth(100)

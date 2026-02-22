@@ -9,9 +9,9 @@
   <!-- highlight color when renaming -->
   <color name="primaryLightColor">#5a5b61</color>
   <!-- the background color of the main window-->
-  <color name="secondaryDarkColor">#31363b</color>
-  <!-- the background color of the playlist, with transparency -->
-  <color name="secondaryColor">#232629</color>
+  <color name="secondaryDarkColor">#264653</color>
+  <!-- the background color of the playlist, with transparency? -->
+  <color name="secondaryColor">#264653</color>
   <!-- tooltip background -->
   <color name="secondaryLightColor">#5a5b61</color>
 </resources>
