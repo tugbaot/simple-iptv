@@ -21,7 +21,7 @@ Pretty flexible so you can make it look how you want with a nice selection of in
 
 You can change many things, see:
 - config.txt for various changes to the look & layout
-- theme.xml for the colorscheme
+- change the theme to any in the themes folder or add your own
 
 ![themese](https://github.com/tugbaot/simple-iptv/blob/main/screenshots/themes.png)
 
@@ -61,8 +61,8 @@ minimise = True
 # whether the app minimises after play starts
 playlist_icon = mdi.television-classic
 # icon used in the playlist
-app_theme = theme.xml
-# default is theme.xml, but you can add your own or use those from qt_material (see below for the full list)
+app_theme = ebony.xml
+# pick any from the list below or make you're own
 star_empty_color = #777777
 # the color of the empty favourites star icon
 row_height = 24
@@ -71,7 +71,7 @@ app_font = Century Gothic
 app_font_size = 13px
 # can be any font you have installed
 mpv_path = mpv.exe
-# the path to mpv.exe. the default is 'mpv.exe' where it's on path
+# for Windows, the path to mpv.exe. the default is 'mpv.exe' where it's on path
 list_name = playlist.json
 # the filename used to save your playlist
 
@@ -85,33 +85,15 @@ iptv_pass = test
 [themes]
 # alternate themes ###################
 # associated color is for the fav star which is applied based on your theme choice
-theme.xml = #bd95b8
-dark_amber.xml = #ffd740
-dark_blue.xml = #448aff
-dark_cyan.xml = #4dd0e1
-dark_lightgreen.xml = #8bc34a
-dark_pink.xml = #ff4081
-dark_purple.xml = #ab47bc
-dark_red.xml = #ff1744
-dark_teal.xml = #1de9b6
-dark_yellow.xml = #ffff00
-light_amber.xml = #ffc400
-light_blue.xml = #2979ff
-light_blue_500.xml = #03a9f4
-light_cyan.xml = #00e5ff
-light_cyan_500.xml = #00bcd4
-light_lightgreen.xml = #64dd17
-light_lightgreen_500.xml = #8bc34a
-light_orange.xml = #ff3d00
-light_pink.xml = #ff4081
-light_pink_500.xml = #e91e63
-light_purple.xml = #e040fb
-light_purple_500.xml = #9c27b0
-light_red.xml = #ff1744
-light_red_500.xml = #f44336
-light_teal.xml = #1de9b6
-light_teal_500.xml = #009688
-light_yellow.xml = #ffea00
+charcoal-blue.xml = #E76F51
+vintage-grape.xml = #ce4257
+sapphire.xml = #B9D6F2
+amaranth.xml = #2CE6C0
+chocolate-plum.xml = #40C9A2
+granite.xml = #59C9A5
+gunmetal.xml = #A2999E
+ebony.xml = #E3DC95
+
 
 ```
 
