@@ -14,7 +14,7 @@ minimise = True
 # whether the app minimises after play starts
 playlist_icon = mdi.television-classic
 # icon used in the playlist
-app_theme = ebony.xml
+app_theme = charcoal-blue.xml
 # pick any from the list below or make you're own
 star_empty_color = #777777
 # the color of the empty favourites star icon
