@@ -5,7 +5,7 @@ I created this as I wanted something simple and quick to just launch some TV.
 ![simple-iptv screenshot](https://github.com/tugbaot/simple-iptv/blob/main/screenshots/screenshot.png)
 
 ### Install
-To install, just clone or download the zip and uninstall wherever you like. Most things are configurable, e.g. size, font, theme, app name and icon.
+To install, just clone or download the zip and install wherever you like. Most things are configurable, e.g. size, font, theme, app name and icon.
 It uses mpv as the player, so you need to have this installed:
 - Windows: install and add the path to mpv.exe in confix.txt.
 - Linux: just install `sudo apt install mpv` and the app will find it
