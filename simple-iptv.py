@@ -2,6 +2,10 @@
 # Created: 02/02/2026 
 # Simple IPTV thing
 # github.com/tugbaot/simple-iptv
+##################################
+# TO DO
+# why do some buttons retain focus for focus sake
+##################################
 
 import sys
 import os
@@ -21,7 +25,7 @@ from PySide6.QtWidgets import (
     QLineEdit, QListView, QStyledItemDelegate, QAbstractItemView,
     QStatusBar, QStyle, QDialog, QLabel
 )
-from PySide6.QtCore import Qt, QSize, QSortFilterProxyModel, QRect, QEvent, QModelIndex, QAbstractListModel, QMimeData, QByteArray, QDataStream, QIODevice
+from PySide6.QtCore import Qt, QSize, QSortFilterProxyModel, QRect, QEvent, QModelIndex, QAbstractListModel, QMimeData, QByteArray, QDataStream, QIODevice, QTimer
 from PySide6.QtGui import QIcon, QPainter, QTextOption
 
 from qt_material import apply_stylesheet
@@ -456,7 +460,11 @@ class M3UPlayer(QMainWindow):
         btn.setMinimumWidth(140)
         btn.setIconSize(QSize(20, 20))
         btn.setStyleSheet(BUTTON_STYLE)
-        btn.clicked.connect(callback)
+        def wrapped_callback(checked=False):
+            callback()
+            QTimer.singleShot(0, self.setFocus)  # or self.list_view.setFocus()
+
+        btn.clicked.connect(wrapped_callback)
         return btn
 
     def toggle_favourites(self):
@@ -517,6 +525,7 @@ class M3UPlayer(QMainWindow):
             self.statusBar.showMessage(f"Loaded {len(items)} channels from file", 4000)
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))
+        self.setFocus()
 
     def load_m3u(self):
         dialog = QInputDialog(self)
@@ -550,6 +559,7 @@ class M3UPlayer(QMainWindow):
             self.statusBar.showMessage(f"Loaded {len(items)} channels from URL", 4000)
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Could not load:\n{e}")
+        self.setFocus()
 
     def get_xtream(self):
         global IPTV_NAME, IPTV_URL, IPTV_USER, IPTV_PASS
@@ -609,6 +619,7 @@ class M3UPlayer(QMainWindow):
                 QMessageBox.information(self, "Complete", "Xtream channels loaded.")
             except Exception as e:
                 QMessageBox.critical(self, "Xtream Error", str(e))
+        self.setFocus()
 
     def save_m3u(self):
         path, _ = QFileDialog.getSaveFileName(self, "Save playlist", "playlist.m3u", "M3U Files (*.m3u)")
@@ -637,6 +648,7 @@ class M3UPlayer(QMainWindow):
             self.statusBar.showMessage("json saved", 3000)
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))
+        self.setFocus()
 
     def clearlist(self):
         msg = QMessageBox(self)
@@ -663,6 +675,7 @@ class M3UPlayer(QMainWindow):
         if reply == QMessageBox.Ok:
             self.model.clear()
             self.statusBar.showMessage("List cleared", 3000)
+        self.setFocus()
 
     def theme(self):
         global APP_THEME
@@ -740,6 +753,8 @@ class M3UPlayer(QMainWindow):
 
         else:
             ""
+
+        self.setFocus()
 
     def play_selected(self):
         idx = self.list_view.currentIndex()

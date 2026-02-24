@@ -20,7 +20,7 @@ random_theme = False
 # if true, a random theme will be used (just dark ones)
 star_empty_color = #777777
 # the color of the empty favourites star icon
-flat_buttons = True
+flat_buttons = False
 # whether the buttons have border or not (if true, they're flat & higlight on hover)
 row_height = 24
 # for the spacing between playlist items
