@@ -2,10 +2,6 @@
 # Created: 02/02/2026 
 # Simple IPTV thing
 # github.com/tugbaot/simple-iptv
-# -----------------------------------------------
-# TO DO
-# Xtream - get from user input not config?
-# -----------------------------------------------
 
 import sys
 import os
@@ -20,10 +16,10 @@ from fake_useragent import UserAgent
 from pyxtream import XTream
 
 from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QPushButton, QFileDialog,
+    QApplication, QMainWindow, QWidget, QPushButton, QFileDialog, QGridLayout,
     QVBoxLayout, QHBoxLayout, QInputDialog, QMessageBox,
     QLineEdit, QListView, QStyledItemDelegate, QAbstractItemView,
-    QStatusBar, QStyle, QDialog, QFormLayout, QDialogButtonBox
+    QStatusBar, QStyle, QDialog, QLabel
 )
 from PySide6.QtCore import Qt, QSize, QSortFilterProxyModel, QRect, QEvent, QModelIndex, QAbstractListModel, QMimeData, QByteArray, QDataStream, QIODevice
 from PySide6.QtGui import QIcon, QPainter, QTextOption
@@ -37,7 +33,6 @@ dname = os.path.dirname(abspath)
 os.chdir(dname)
 
 # ------- Read config ---------------------------
-# specifies fake comment_prefixes to trick it into leaving # comments in the file
 config = configparser.ConfigParser(comment_prefixes='/', allow_no_value=True)
 config.read('config.txt')
 
@@ -49,16 +44,26 @@ APP_NAME         = config.get('config', 'app_name', fallback='Simple IPTV')
 APP_ICON         = config.get('config', 'app_icon', fallback='mdi.television')
 APP_ICON_COLOR   = config.get('config', 'app_icon_color', fallback='white')
 PLAYLIST_ICON    = config.get('config', 'playlist_icon', fallback='mdi.television-guide')
-APP_THEME        = config.get('config', 'app_theme', fallback='charcoal-blue.xml')
+APP_THEME        = config.get('config', 'app_theme', fallback='charcoal.xml')
 APP_FONT         = config.get('config', 'app_font', fallback='Segoe UI')
 APP_FONT_SIZE    = config.get('config', 'app_font_size', fallback='9pt')
-STAR_COLOR       = config.get('themes', str(APP_THEME), fallback='#FFCA28')
-STAR_EMPTY_COLOR = config.get('config', 'star_empty_color', fallback='#757575')
+FLAT             = config.getboolean('config', 'flat_buttons', fallback=False)
 ROW_HEIGHT       = config.getint('config', 'row_height', fallback=38)
 APP_HEIGHT       = config.getint('config', 'app_height', fallback=600)
 APP_WIDTH        = config.getint('config', 'app_width', fallback=480)
 FULLSCREEN       = config.getboolean('config', 'fullscreen', fallback=False)
 MINIMISE         = config.getboolean('config', 'minimise', fallback=False)
+
+# Star colors – loaded dynamically can be refreshed
+STAR_COLOR = None
+STAR_EMPTY_COLOR = None
+def reload_star_colors():
+    global STAR_COLOR, STAR_EMPTY_COLOR
+    theme_key = APP_THEME.replace('.xml', '') if APP_THEME.endswith('.xml') else APP_THEME
+    STAR_COLOR = config.get('themes', theme_key, fallback='#FFCA28')
+    STAR_EMPTY_COLOR = config.get('config', 'star_empty_color', fallback='#757575')
+
+reload_star_colors()  # Initial load
 
 # ------- Xtream config -------------------------
 IPTV_NAME        = config.get('xtream', 'IPTV_NAME')
@@ -84,6 +89,7 @@ Features:
 • Save json (playlist and favs)
 • Drag to reorder
 • Clear list
+• Theme selection
 
 Customize via config.txt and theme.xml
 
@@ -226,11 +232,9 @@ class FavouriteFilterProxy(QSortFilterProxyModel):
 
     def filterAcceptsRow(self, source_row, source_parent):
 
-        # Apply search filter first
         if not super().filterAcceptsRow(source_row, source_parent):
             return False
 
-        # Apply favourites filter
         if not self._show_only_favourites:
             return True
 
@@ -297,12 +301,10 @@ class PlaylistDelegate(QStyledItemDelegate):
                     painter.drawText(x, y + fm.ascent() + 2, chunk)
                     break
 
-                # draw normal text before match
                 before = text[i:match_index]
                 painter.drawText(x, y + fm.ascent() + 2, before)
                 x += fm.horizontalAdvance(before)
 
-                # draw highlighted match
                 match = text[match_index:match_index + len(search)]
 
                 highlight_rect = QRect(
@@ -333,7 +335,6 @@ class PlaylistDelegate(QStyledItemDelegate):
                 return True
         return super().editorEvent(event, model, option, index)
 
-    # ---- Highlight search terms ---------------
     def _get_search_text(self, index):
         view = self.parent()
         if not view:
@@ -412,6 +413,7 @@ class M3UPlayer(QMainWindow):
         btn_savem3u   = self.make_button(" Save M3U", "mdi.content-save-outline", self.save_m3u)
         btn_savejson  = self.make_button(" Save json", "mdi.code-json", self.save_json)
         btn_clear     = self.make_button(" Clear list", "mdi.delete-outline", self.clearlist)
+        btn_theme     = self.make_button(" Theme", "mdi.palette-outline", self.theme)
         btn_info      = self.make_button(" Info", "mdi.information", self.show_info)
         btn_quit      = self.make_button(" Quit", "mdi.exit-to-app", self.close)
         
@@ -423,20 +425,25 @@ class M3UPlayer(QMainWindow):
         controls.addWidget(btn_savem3u)
         controls.addWidget(btn_savejson)
         controls.addWidget(btn_clear)
+        controls.addWidget(btn_theme)
         controls.addStretch()
 
-        # Bottom row: Info + Quit side by side, smaller
         bottom_row = QHBoxLayout()
         bottom_row.setSpacing(4)
 
         btn_info.setMinimumWidth(40) 
         btn_info.setMaximumWidth(120)
-        
+
         btn_quit.setMinimumWidth(40)
         btn_quit.setMaximumWidth(120)
         btn_quit.setIconSize(QSize(18, 18))
         bottom_row.addWidget(btn_info)
         bottom_row.addWidget(btn_quit)
+
+        if FLAT:
+            buttons = [btn_search, self.btn_fav, btn_open, btn_url, btn_xtream, btn_savem3u, btn_savejson, btn_clear, btn_theme, btn_info, btn_quit]
+            for i, button in enumerate(buttons):
+                button.setFlat(True)
 
         controls.addLayout(bottom_row)
 
@@ -456,14 +463,17 @@ class M3UPlayer(QMainWindow):
         self.show_favourites = not self.show_favourites
         self.proxy_model.show_only_favourites = self.show_favourites
 
+        self.update_fav_button_icon()
+
+        self.proxy_model.invalidate()
+
+    def update_fav_button_icon(self):
         if self.show_favourites:
             self.btn_fav.setIcon(qta.icon("mdi.star", color=STAR_COLOR))
             self.btn_fav.setToolTip("Showing favourites only — click to show all")
         else:
             self.btn_fav.setIcon(qta.icon("mdi.star-outline", color=STAR_EMPTY_COLOR))
             self.btn_fav.setToolTip("Click to show favourites only")
-
-        self.proxy_model.invalidate()
 
     def toggle_search(self):
         if self.search.isVisible():
@@ -472,6 +482,13 @@ class M3UPlayer(QMainWindow):
         else:
             self.search.show()
             self.search.setFocus()
+
+    def update_star_icons(self):
+        delegate = self.list_view.itemDelegate()
+        if isinstance(delegate, PlaylistDelegate):
+            delegate.star_on = qta.icon("mdi.star", color=STAR_COLOR)
+            delegate.star_off = qta.icon("mdi.star-outline", color=STAR_EMPTY_COLOR)
+            self.list_view.viewport().update()
 
     def _parse_m3u_content(self, lines: list[str]) -> list:
         playlist = []
@@ -509,7 +526,6 @@ class M3UPlayer(QMainWindow):
         dialog.setCancelButtonText("Cancel")
         dialog.resize(400, 120)
 
-        # Match app button styling
         for btn in dialog.findChildren(QPushButton):
             btn.setCursor(Qt.PointingHandCursor)
             btn.setMinimumWidth(100)
@@ -532,26 +548,17 @@ class M3UPlayer(QMainWindow):
             self.model.clear()
             self.model.append_items(items)
             self.statusBar.showMessage(f"Loaded {len(items)} channels from URL", 4000)
-            #if xtream:
-            #    self.xtream_config = xtream
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Could not load:\n{e}")
 
     def get_xtream(self):
-        global IPTV_NAME 
-        global IPTV_URL 
-        global IPTV_USER
-        global IPTV_PASS
+        global IPTV_NAME, IPTV_URL, IPTV_USER, IPTV_PASS
 
         msg = QMessageBox(self)
         msg.setWindowTitle("Load IPTV Xtream")
-        msg.setText("This will remove all current channels and favs, and reload from your IPTV provider. \n\nProvider: " + IPTV_NAME +
-        "\nURL: " + IPTV_URL +
-        "\nUsername: " + IPTV_USER +
-        "\nPassword: ************"
-        )
+        msg.setText(f"This will remove all current channels and favs, and reload from your IPTV provider.\n\n"
+                    f"Provider: {IPTV_NAME}\nURL: {IPTV_URL}\nUsername: {IPTV_USER}\nPassword: ************")
         msg.setIcon(QMessageBox.Icon.Question)
-
         msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         msg.setDefaultButton(QMessageBox.StandardButton.No)
 
@@ -564,16 +571,15 @@ class M3UPlayer(QMainWindow):
                 btn.setIcon(qta.icon("mdi.check-circle-outline"))
             if "No" in btn.text():
                 btn.setIcon(qta.icon("mdi.close-circle-outline"))
+            if FLAT:
+                btn.setFlat(True)
 
-        reply = msg.show()
+        reply = msg.exec()
 
         if reply == QMessageBox.Yes:
             try:
                 self.statusBar.showMessage("Connecting to Xtream…", 3000)
-
                 xt = XTream(IPTV_NAME, IPTV_USER, IPTV_PASS, IPTV_URL)
-                print(xt)
-
                 xt.authenticate()
 
                 if not xt.authorization:
@@ -581,32 +587,16 @@ class M3UPlayer(QMainWindow):
                     return
 
                 xt.load_iptv()
-                print(vars(xt.channels[0]))
-
-                if xt.channels:
-                    ch = xt.channels[0]
-                    print("Type:", type(ch))
-                    print("Attrs:", vars(ch))
-
                 items = []
 
                 for ch in xt.channels:
                     try:
                         name = getattr(ch, "name", None)
-
-                        stream_id = (
-                            getattr(ch, "stream_id", None)
-                            or getattr(ch, "streamId", None)
-                            or getattr(ch, "id", None)
-                        )
-
+                        stream_id = getattr(ch, "stream_id", None) or getattr(ch, "streamId", None) or getattr(ch, "id", None)
                         if not name or not stream_id:
                             continue
-
                         url = f"{IPTV_URL}/live/{IPTV_USER}/{IPTV_PASS}/{stream_id}.ts"
-
                         items.append([name, url, False])
-
                     except Exception as e:
                         print("Skipped:", e)
 
@@ -616,9 +606,7 @@ class M3UPlayer(QMainWindow):
 
                 self.model.clear()
                 self.model.append_items(items)
-
                 QMessageBox.information(self, "Complete", "Xtream channels loaded.")
-
             except Exception as e:
                 QMessageBox.critical(self, "Xtream Error", str(e))
 
@@ -655,27 +643,103 @@ class M3UPlayer(QMainWindow):
         msg.setWindowTitle("Clear")
         msg.setText("Are you sure you want to clear the list?")
         msg.setIcon(QMessageBox.Icon.Question)
-
-        msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-        msg.setDefaultButton(QMessageBox.StandardButton.No)
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
+        msg.setDefaultButton(QMessageBox.StandardButton.Cancel)
 
         for btn in msg.findChildren(QPushButton):
             btn.setCursor(Qt.PointingHandCursor)
             btn.setMinimumWidth(100)
             btn.setIconSize(QSize(20, 20))
             btn.setStyleSheet(BUTTON_STYLE)
-            if "Yes" in btn.text():
+            if "OK" in btn.text():
                 btn.setIcon(qta.icon("mdi.check-circle-outline"))
-            if "No" in btn.text():
+            if "Cancel" in btn.text():
                 btn.setIcon(qta.icon("mdi.close-circle-outline"))
+            if FLAT:
+                btn.setFlat(True)
 
-        reply = msg.show()
+        reply = msg.exec()
 
-        if reply == QMessageBox.Yes:
+        if reply == QMessageBox.Ok:
             self.model.clear()
             self.statusBar.showMessage("List cleared", 3000)
+
+    def theme(self):
+        global APP_THEME
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Theme")
+        dialog.setModal(True)
+
+        layout = QVBoxLayout(dialog)
+        current_without_ext = APP_THEME.replace('.xml', '') if APP_THEME.endswith('.xml') else APP_THEME
+        layout.addWidget(QLabel(f"The current theme is <b>{current_without_ext}</b><br><br>Pick your poison: <br>"))
+
+        grid = QGridLayout()
+
+        theme_names = ["amaranth", "charcoal", "ebony", "granite", "grape", "gunmetal", "plum", "sapphire"]
+
+        selected_theme = [None]
+
+        def on_theme_selected(name):
+            selected_theme[0] = name
+            dialog.accept()
+
+        for i, name in enumerate(theme_names):
+            btn = QPushButton(name)
+            btn.setMinimumSize(130, 48)
+            btn.setCursor(Qt.PointingHandCursor)
+            btn.setIcon(qta.icon("mdi6.palette-outline"))
+            btn.setStyleSheet(BUTTON_STYLE)
+
+            if name == current_without_ext:
+                btn.setAutoDefault(True)
+                btn.setDefault(True)
+                btn.setFocus()          # optional: give it initial keyboard focus too
+            else:
+                btn.setAutoDefault(False)
+                btn.setDefault(False)
+
+            btn.clicked.connect(lambda checked=False, n=name: on_theme_selected(n))
+            grid.addWidget(btn, i // 4, i % 4)
+
+        layout.addLayout(grid)
+
+        cancel = QPushButton("Cancel")
+        cancel.setStyleSheet(BUTTON_STYLE)
+        cancel.setIcon(qta.icon("mdi.close"))
+        cancel.clicked.connect(dialog.reject)
+        layout.addWidget(cancel, alignment=Qt.AlignRight)
+
+        if dialog.exec() == QDialog.Accepted and selected_theme[0]:
+            chosen_name = selected_theme[0]
+            chosen = chosen_name + ".xml"
+
+            apply_stylesheet(
+                QApplication.instance(),
+                theme=f"themes/{chosen}",
+                extra={"font_family": APP_FONT, "font_size": APP_FONT_SIZE}
+            )
+            QApplication.instance().setStyle(QApplication.style())
+            self.style().polish(self)
+
+            APP_THEME = chosen
+
+            reload_star_colors()
+            self.update_star_icons()
+            self.update_fav_button_icon()
+
+            self.list_view.viewport().update()
+            self.update()
+
+            self.statusBar.showMessage(f"Theme changed to {chosen_name}", 8000)
+
+            config.set('config', 'app_theme', chosen_name)
+            with open('config.txt', 'w') as cfgfile:
+                config.write(cfgfile)
+
         else:
-            print("No clicked")
+            ""
 
     def play_selected(self):
         idx = self.list_view.currentIndex()
@@ -691,7 +755,6 @@ class M3UPlayer(QMainWindow):
             if MINIMISE:
                 sleep(5)
                 self.showMinimized()
-
         except FileNotFoundError:
             QMessageBox.critical(self, "mpv not found", f"Check MPV_PATH\nCurrently: {MPV_PATH}")
 
@@ -706,8 +769,9 @@ class M3UPlayer(QMainWindow):
             btn.setIconSize(QSize(20, 20))
             btn.setStyleSheet(BUTTON_STYLE)
             btn.setIcon(qta.icon("mdi.check-circle-outline"))
-
-        msg.show()
+            if FLAT:
+                btn.setFlat(True)
+        msg.exec()
 
     def load_state(self):
         path = Path(STATE_FILE)
@@ -723,14 +787,12 @@ class M3UPlayer(QMainWindow):
                 self.show_favourites = data.get("show_favourites", False)
             self.model.append_items(items)
             self.proxy_model.show_only_favourites = self.show_favourites
-            if self.show_favourites:
-                self.btn_fav.setIcon(qta.icon("mdi.star", color=STAR_COLOR))
+            self.update_fav_button_icon()
             self.statusBar.showMessage(f"Restored {len(items)} channels", 4000)
         except Exception as e:
             print("State load failed:", e)
 
     def update_config(self):
-        # --- update window size ------
         cfgfile = open('config.txt', 'w')
         config.set("config", "app_height", str(self.height()))
         config.set("config", "app_width", str(self.width()))
@@ -748,7 +810,6 @@ class M3UPlayer(QMainWindow):
             pass
 
         self.update_config()
-
         super().closeEvent(event)
 
 # ---------- Entry Point ------------------------
@@ -756,7 +817,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     apply_stylesheet(
         app,
-        theme="themes/" + APP_THEME,
+        theme="themes/" + APP_THEME + ".xml",
         extra={"font_family": APP_FONT, "font_size": APP_FONT_SIZE}
     )
     window = M3UPlayer()

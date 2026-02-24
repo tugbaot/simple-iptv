@@ -5,8 +5,8 @@ app_icon = mdi.television-classic
 # the icon in the title bar using mdi icons, see https = //pictogrammers.com/library/mdi/
 app_icon_color = #292623
 # the icon color in the title bar, can be text or rgb
-app_height = 490
-app_width = 658
+app_height = 554
+app_width = 815
 # the size of the application window
 fullscreen = False
 # if true, overrides the app_height and app_width
@@ -14,10 +14,14 @@ minimise = True
 # whether the app minimises after play starts
 playlist_icon = mdi.television-classic
 # icon used in the playlist
-app_theme = charcoal-blue.xml
-# pick any from the list below or make you're own
+app_theme = charcoal
+# pick any from the list below or make you're own, you can change in the app
+random_theme = False
+# if true, a random theme will be used (just dark ones)
 star_empty_color = #777777
 # the color of the empty favourites star icon
+flat_buttons = True
+# whether the buttons have border or not (if true, they're flat & higlight on hover)
 row_height = 24
 # for the spacing between playlist items
 app_font = Century Gothic
@@ -36,13 +40,13 @@ iptv_pass = test
 # your iptv login info
 
 [themes]
-# alternate themes ###################
+# alternate themes
 # associated color is for the fav star which is applied based on your theme choice
-charcoal-blue.xml = #E76F51
-vintage-grape.xml = #ce4257
-sapphire.xml = #B9D6F2
-amaranth.xml = #2CE6C0
-chocolate-plum.xml = #40C9A2
-granite.xml = #59C9A5
-gunmetal.xml = #A2999E
-ebony.xml = #E3DC95
+amaranth = #2CE6C0
+charcoal = #E76F51
+ebony = #E3DC95
+granite = #59C9A5
+grape = #59C9A5
+gunmetal = #d45f8a
+plum = #40C9A2
+sapphire = #B9D6F2
