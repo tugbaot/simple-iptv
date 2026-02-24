@@ -99,6 +99,12 @@ Customize via config.txt and theme.xml
 
 ⛬ https://github.com/tugbaot/simple-iptv"""
 
+# ------- Logging stuff -------------------------
+if sys.stdout is None:
+    sys.stdout = open(os.devnull, 'w')
+if sys.stderr is None:
+    sys.stderr = open(os.devnull, 'w')
+
 # ------- Custom Model --------------------------
 class PlaylistModel(QAbstractListModel):
     NameRole = Qt.UserRole + 1
@@ -686,7 +692,7 @@ class M3UPlayer(QMainWindow):
 
         layout = QVBoxLayout(dialog)
         current_without_ext = APP_THEME.replace('.xml', '') if APP_THEME.endswith('.xml') else APP_THEME
-        layout.addWidget(QLabel(f"The current theme is <b>{current_without_ext}</b><br><br>Pick your poison: <br>"))
+        layout.addWidget(QLabel(f"The current theme is <b>{current_without_ext}</b><br>"))
 
         grid = QGridLayout()
 
@@ -704,6 +710,8 @@ class M3UPlayer(QMainWindow):
             btn.setCursor(Qt.PointingHandCursor)
             btn.setIcon(qta.icon("mdi6.palette-outline"))
             btn.setStyleSheet(BUTTON_STYLE)
+            if FLAT:
+                btn.setFlat(True)
 
             if name == current_without_ext:
                 btn.setAutoDefault(True)
@@ -722,6 +730,8 @@ class M3UPlayer(QMainWindow):
         cancel.setStyleSheet(BUTTON_STYLE)
         cancel.setIcon(qta.icon("mdi.close"))
         cancel.clicked.connect(dialog.reject)
+        if FLAT:
+            cancel.setFlat(True)
         layout.addWidget(cancel, alignment=Qt.AlignRight)
 
         if dialog.exec() == QDialog.Accepted and selected_theme[0]:
