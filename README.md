@@ -1,49 +1,58 @@
 # simple-iptv
 A lightweight & customisable IPTV manager using MPV to play iptv channels for Windows and Linux.
 
-I created this as I wanted something simple and quick to just launch some TV.
+I created this as I wanted something simple and quick to just watch some TV.
 ![simple-iptv screenshot](https://github.com/tugbaot/simple-iptv/blob/main/screenshots/screenshot.png)
 
-### Install
+## Install & run
 To install, just clone or download the zip and install wherever you like. Most things are configurable, e.g. size, font, theme, app name and icon.
-It uses mpv as the player, so you need to have this installed:
-- Windows: install and add the path to mpv.exe in confix.txt.
+
+### Also needed:
+
+**MPV**
+
+It uses [mpv](https://mpv.io) as the player, so you need to have this installed:
+- Windows: install and add the path to mpv.exe in config.txt
 - Linux: just install `sudo apt install mpv` and the app will find it
 
-Also requires:
+**PIP**
+
+also requires:
 - `pip install -r requirements.txt`
 
-Run with `python3 simple-iptv.py` or see Tips below if you just want a normal shortcut.
+**Run**
 
-### Theming
+Run with `python3 simple-iptv.py` or see **Tips** below if you just want a normal shortcut.
 
-Pretty flexible so you can make it look how you want with a nice selection of inbuilt themes you can use or create your own.
+## Theming
+
+Pretty flexible so you can make it look how you want.
 
 You can change many things, see:
 - config.txt for various changes to the look & layout
-- change the theme to any in the themes folder or add your own
+- change the theme in config.txt or in the app
 
 ![themese](https://github.com/tugbaot/simple-iptv/blob/main/screenshots/themes.png)
 
-### Basic features
+## Features
 - Search: search box to filter & search for channels
 - Favourites: toggle view only favs or all channels
 - Open M3U: to open a m3u file
 - Load URL: to load an online m3u/XStream from an IPTV provider
 - Save M3U: to save the current playlist (all or favs only) as an m3u file
 - Xtream: Load from your Xtream IPTV provider
-- Save json: saves the full state, all channels and favourites.
+- Save json: saves the full state, all channels and favourites
 - Clear list: clear current channels
 - Double click to play
 - Reorder the channels by dragging the TV icons
 
-### Tips
+## Tips
 - If you don't want to run from the command line:
   - For Windows you can create a normal desktop shortcut with the following as target: ```C:\<path to>\pythonw.exe "C:\<path to>\simple-iptv.py"```
-  - If you're using Linux you know this stuff.
+  - If you're using Linux you know this stuff
 - To try out some IPTV, you can try this url [https://iptv-org.github.io/iptv/index.m3u](https://iptv-org.github.io/iptv/index.m3u) which has a curated list of free channels from across the world. You can find more IPTV providers here [https://github.com/iptv-org/awesome-iptv](https://github.com/iptv-org/awesome-iptv?tab=readme-ov-file#providers)
 
-### Config
+## Config
 ```
 [config]
 app_name = Simple IPTV
@@ -65,6 +74,8 @@ app_theme = ebony.xml
 # pick any from the list below or make you're own
 star_empty_color = #777777
 # the color of the empty favourites star icon
+flat_buttons = True
+# whether the buttons have border or not (if true, they're flat & higlight on hover)
 row_height = 24
 # for the spacing between playlist items
 app_font = Century Gothic
