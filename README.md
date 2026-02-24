@@ -28,7 +28,6 @@ Run with `python3 simple-iptv.py` or see **Tips** below if you just want a norma
 
 Pretty flexible so you can make it look how you want.
 
-You can change many things, see:
 - config.txt for various changes to the look & layout
 - change the theme in config.txt or in the app
 
