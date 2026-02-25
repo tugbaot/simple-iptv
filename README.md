@@ -1,11 +1,13 @@
 # simple-iptv
 A lightweight & customisable IPTV manager using MPV to play iptv channels for Windows and Linux.
 
-I created this as I wanted something simple and quick to just watch some TV. You can add your own m3u or Xtream.
+I created this as I wanted something simple and quick to just watch some TV. 
+
+You can add your own m3u or Xtream source.
 ![simple-iptv screenshot](https://github.com/tugbaot/simple-iptv/blob/main/screenshots/screenshot.png)
 
 ## Install & run
-To install, just clone or download the zip and install wherever you like. Most things are configurable, e.g. size, font, theme, app name and icon.
+To install, just clone or download the zip and unpack wherever you like. Most things are configurable, e.g. size, font, theme, app name and icon.
 
 ### Also needed:
 
