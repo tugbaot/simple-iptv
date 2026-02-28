@@ -2,10 +2,10 @@
 # Created: 02/02/2026 
 # Simple IPTV thing
 # github.com/tugbaot/simple-iptv
-##################################
+#####################################
 # TO DO
-# why do some buttons retain focus for focus sake
-##################################
+# save & restore favs on xtream load
+#####################################
 
 import sys
 import os
@@ -549,6 +549,8 @@ class M3UPlayer(QMainWindow):
                 "text-align: left; padding-left: 12px; font-size: 8pt; "
                 "font-weight: normal; border-width: 1px;"
             )
+            if FLAT:
+                btn.setFlat(True)
 
         if dialog.exec():
             url = dialog.textValue().strip()
@@ -696,7 +698,7 @@ class M3UPlayer(QMainWindow):
 
         grid = QGridLayout()
 
-        theme_names = ["amaranth", "charcoal", "ebony", "granite", "grape", "gunmetal", "plum", "sapphire"]
+        theme_names = ["amaranth", "charcoal", "ebony", "granite", "grape", "gunmetal", "plum", "sapphire", "blizzard", "bubblegum", "cream", "platinum"]
 
         selected_theme = [None]
 
@@ -725,6 +727,8 @@ class M3UPlayer(QMainWindow):
             grid.addWidget(btn, i // 4, i % 4)
 
         layout.addLayout(grid)
+
+        layout.addWidget(QLabel(f"<br><br>If changing between a dark & light theme you might need to restart to make icons look right."))
 
         cancel = QPushButton("Cancel")
         cancel.setStyleSheet(BUTTON_STYLE)

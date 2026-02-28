@@ -1,0 +1,17 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<resources>
+  <!-- The main color of icons, buttons & row highlighting -->
+  <color name="primaryColor">#272822</color>
+  <!-- playlist text color -->
+  <color name="secondaryTextColor">#272822</color>
+  <!-- playlist text color when highlighted -->
+  <color name="primaryTextColor">#272822</color>
+  <!-- highlight color when renaming -->
+  <color name="primaryLightColor">#508e83</color>
+  <!-- the background color of the main window-->
+  <color name="secondaryDarkColor">#E6E6E6</color>
+  <!-- the background color of the playlist, with transparency? -->
+  <color name="secondaryColor">#E6E6E6</color>
+  <!-- tooltip background -->
+  <color name="secondaryLightColor">#508e83</color>
+</resources>
